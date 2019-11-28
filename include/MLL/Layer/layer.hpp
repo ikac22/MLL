@@ -14,15 +14,15 @@ namespace MLL{
     public:
         virtual int get_size() const = 0;
 
-        virtual void feed_forward(const CoreLayer&) = 0;
-        //virtual void feed_forward(const ConvLayer&) = 0;
-        //virtual void feed_forward(const PoolLayer&) = 0;
+        virtual void forward_propagation(const CoreLayer&) = 0;
+        //virtual void forward_propagation(const ConvLayer&) = 0;
+        //virtual void forward_propagation(const PoolLayer&) = 0;
 
         virtual Layer* copy() const = 0;
 
         virtual void set_activation(const std::vector<float>&) = 0;
         virtual const std::vector<float>& get_activation() const = 0;
-        
+
     };
 
 }

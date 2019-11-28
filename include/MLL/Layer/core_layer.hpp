@@ -11,9 +11,21 @@ namespace MLL{
     private:
 
     protected:
-        
+        Matrix m_activation;
+        Matrix m_sum;
     public:
-        CoreLayer();
+        CoreLayer(int);
+
+        int get_size() const;
+
+        virtual void forward_propagation(const CoreLayer&) = 0;
+        //virtual void forward_propagation(const ConvLayer&) = 0;
+        //virtual void forward_propagation(const PoolLayer&) = 0;
+
+        virtual Layer* copy() const = 0;
+
+        void set_activation(const std::vector<float>&);
+        const std::vector<float>& get_activation() const;
     };
 }
 

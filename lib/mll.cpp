@@ -84,15 +84,15 @@ void gemm(const Matrix& t_matrix1, const Matrix& t_matrix2, Matrix& result){
 
 ActivationFunction::ActivationFunction(Activation t_act){
     switch((int)t_act){
-        case 0:{
+        case 0:{    // Linear
             m_activation_fun = Activations::linear_f;
             m_activation_deriv = Activations::linear_d;
         }break;
-        case 1:{
+        case 1:{    // Sigmoid
             m_activation_fun = Activations::sigmoid_f;
             m_activation_deriv = Activations::sigmoid_d;
         }break;
-        case 2:{
+        case 2:{    // ReLU
             m_activation_fun = Activations::relu_f;
             m_activation_deriv = Activations::relu_d;
         }break;
@@ -133,14 +133,12 @@ const Matrix& ActivationFunction::operator[](const Matrix& x) const {
     return result;
 }
 
-CoreLayer::CoreLayer(int t_size) :
-m_size(t_size){
-    m_activation.resize(t_size, 1);
-}
 
 Layer* Dense::copy() const {
-    //return new Dense(m_prev_size, m_size, m_act);
+    return new Dense(*this);
 }
+
+
 
 }
 

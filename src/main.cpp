@@ -31,10 +31,15 @@ int main(){
     Network n;
 
     //n.add(Input(784));
-    n.add(Dense(784, Activation::Linear));
+    //n.add(Dense(0, 784, Activation::Linear));
     //n.add(Dense(784, 300, Activation::ReLU));
     //n.add(Dense(300, 150, Activation::ReLU));
     //n.add(Dense(150, 10, Actvation::Sigmoid));
+
+    n.add(Input(784));
+    n.add(Dense(300, Activation::ReLU));
+    n.add(Dense(150, Activation::ReLU));
+    n.add(Dense(10, Activation::Sigmoid));
 
     std::cout << n.get_first().get_size() << std::endl;
 

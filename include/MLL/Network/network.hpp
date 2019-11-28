@@ -12,6 +12,8 @@ namespace MLL{
     public:
         void add(const Layer& tl){ m_layer.push_back(*tl.copy()); }
         Layer& get_first(){ return m_layer[0]; }        // TODO: Remove
+
+        
     };
 }
 
