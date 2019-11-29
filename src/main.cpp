@@ -36,12 +36,12 @@ int main(){
     //n.add(Dense(300, 150, Activation::ReLU));
     //n.add(Dense(150, 10, Actvation::Sigmoid));
 
-    n.add(Input(784));
+    //n.add(Input(784));
     n.add(Dense(300, Activation::ReLU));
     n.add(Dense(150, Activation::ReLU));
     n.add(Dense(10, Activation::Sigmoid));
 
-    std::cout << n.get_first().get_size() << std::endl;
+    //std::cout << n.get_first().get_size() << std::endl;
 
 
     return 0;

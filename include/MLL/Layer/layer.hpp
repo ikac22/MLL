@@ -10,10 +10,8 @@ namespace MLL{
     private:
 
     protected:
-
+        virtual void set_size(int) = 0;
     public:
-        virtual int get_size() const = 0;
-
         virtual void forward_propagation(const CoreLayer&) = 0;
         //virtual void forward_propagation(const ConvLayer&) = 0;
         //virtual void forward_propagation(const PoolLayer&) = 0;
@@ -21,8 +19,8 @@ namespace MLL{
         virtual Layer* copy() const = 0;
 
         virtual void set_activation(const std::vector<float>&) = 0;
-        virtual const std::vector<float>& get_activation() const = 0;
 
+        virtual const std::array<int, 3> get_shape() const = 0;
     };
 
 }

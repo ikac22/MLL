@@ -2,13 +2,25 @@
 #define _MLL_OPTIMIZER_OPTIMIZER_HPP
 
 namespace MLL{
-    class Optimizer{
-    private:
+    enum class Optimizer{
+        SGD,
+        Adagrad
+    };
+    class OptimizerFunction{
+        private:
+            float m_learning_rate, m_epsilon, m_decay, ag_param;
+            std::function<float(float, float)> m_fun;
 
-    protected:
+            float SGD(float, float);
+            float AdaGrad(float, float);
+        protected:
 
-    public:
-        
+        public:
+            OptimizerFunction(Optimizer, float, float, float);
+
+            float operator() (float, float);
+
+            const Matrix operator() (const Matrix&, const Matrix&) const;
     };
 }
 

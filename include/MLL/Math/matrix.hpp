@@ -14,7 +14,7 @@ namespace MLL{
     public:
         Matrix();
         Matrix(int, int);
-        Matrix(int, int, const std::initializer_list<float>&);
+        Matrix(int, int, const std::vector<float>&);
 
         Matrix& operator=(const Matrix&);
 

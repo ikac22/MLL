@@ -9,4 +9,5 @@
 
 #include<MLL/Network/network.hpp>
 
+#include<MLL/Optimizer/optimizer.hpp>
 #endif//_MLL_HPP

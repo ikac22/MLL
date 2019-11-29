@@ -9,7 +9,7 @@ Matrix::Matrix(int t_height, int t_width){
 }
 
 Matrix::Matrix(int t_height, int t_width,
-               const std::initializer_list<float>& t_init_list){
+               const std::vector<float>& t_init_list){
     resize(t_height, t_width);
 
     int k = 0;
@@ -133,20 +133,63 @@ const Matrix& ActivationFunction::operator[](const Matrix& x) const {
     return result;
 }
 
+CoreLayer::CoreLayer(int t_dim){
+    set_size(t_dim);
+}
+
+void CoreLayer::set_size(int t_dim){
+    m_activation.resize(t_dim, 1);
+    m_sum.resize(t_dim,1);
+}
+
+const std::array<int,3> CoreLayer::get_shape() const {
+    return std::array<int, 3>({m_activation.get_height(),1,1});
+}
+
+Layer* CoreLayer::copy() const {
+    return new CoreLayer(*this);
+}
+
+void CoreLayer::forward_propagation(const CoreLayer&){}
+
+void CoreLayer::set_activation(const std::vector<float>& t_act){
+    m_activation = Matrix(t_act.size(),1,t_act);
+}
+
+Dense::Dense(int t_dim, Activation t_act) :
+CoreLayer(t_dim),
+m_fun(t_act){}
+
+void Dense::forward_propagation(const CoreLayer& t_prev_layer){
+    m_sum = m_weight * t_prev_layer.get_activation() + m_bias;
+    m_activation = m_fun(m_sum);
+}
 
 Layer* Dense::copy() const {
     return new Dense(*this);
 }
 
-
-
-}
-
-namespace MLL::Activations{
+namespace Activations{
     float linear_f(float x){ return x; }
     float linear_d(float x){ return 1; }
     float sigmoid_f(float x){ return 1 / (1 + exp(-x)); }
     float sigmoid_d(float x){ return sigmoid_f(x) * (1 - sigmoid_f(x)); }
     float relu_f(float x){ return x > 0 ? x : 0; }
     float relu_d(float x){ return x > 0; }
+}
+
+OptimizerFunction::OptimizerFunction(Optimizer t_opt, float t_learning_rate,
+                  float t_epsilon, float t_decay):
+m_learning_rate(t_learning_rate),
+m_epsilon(t_epsilon),
+m_decay(t_decay){
+    switch((int)t_opt){
+        case 0: m_fun = SGD; break;
+        case 1: m_fun = AdaGrad; break;
+    }
+}
+
+Optimizers::SGD(){
+
+}
 }
