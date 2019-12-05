@@ -14,10 +14,6 @@ namespace MLL{
         ActivationFunction m_fun;
     public:
         Dense(int, Activation);
-
-        void forward_propagation(const CoreLayer&);
-
-        Layer* copy() const;
     };
 }
 

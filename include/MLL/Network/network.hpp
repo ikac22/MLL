@@ -13,7 +13,13 @@ namespace MLL{
         void add(const Layer& tl){ m_layer.push_back(*tl.copy()); }
         Layer& get_first(){ return m_layer[0]; }        // TODO: Remove
 
-        
+        //void compile();
+        //void fit();
+        //void evaluate();
+        //const std::vector<double>& predict();
+
+        //void load_from_file();
+        //void save_to_file();
     };
 }
 

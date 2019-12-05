@@ -133,42 +133,6 @@ const Matrix& ActivationFunction::operator[](const Matrix& x) const {
     return result;
 }
 
-CoreLayer::CoreLayer(int t_dim){
-    set_size(t_dim);
-}
-
-void CoreLayer::set_size(int t_dim){
-    m_activation.resize(t_dim, 1);
-    m_sum.resize(t_dim,1);
-}
-
-const std::array<int,3> CoreLayer::get_shape() const {
-    return std::array<int, 3>({m_activation.get_height(),1,1});
-}
-
-Layer* CoreLayer::copy() const {
-    return new CoreLayer(*this);
-}
-
-void CoreLayer::forward_propagation(const CoreLayer&){}
-
-void CoreLayer::set_activation(const std::vector<float>& t_act){
-    m_activation = Matrix(t_act.size(),1,t_act);
-}
-
-Dense::Dense(int t_dim, Activation t_act) :
-CoreLayer(t_dim),
-m_fun(t_act){}
-
-void Dense::forward_propagation(const CoreLayer& t_prev_layer){
-    m_sum = m_weight * t_prev_layer.get_activation() + m_bias;
-    m_activation = m_fun(m_sum);
-}
-
-Layer* Dense::copy() const {
-    return new Dense(*this);
-}
-
 namespace Activations{
     float linear_f(float x){ return x; }
     float linear_d(float x){ return 1; }
