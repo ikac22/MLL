@@ -1,6 +1,10 @@
 #ifndef _MLL_LAYER_LAYER_HPP
 #define _MLL_LAYER_LAYER_HPP
 
+#include<vector>
+
+#include<MLL/Layer/layer_shape.hpp>
+
 namespace MLL{
     class CoreLayer;
     class ConvLayer;
@@ -9,16 +13,26 @@ namespace MLL{
     class Layer{
     private:
 
-    protected:
-
     public:
-        virtual void forward_propagation(const CoreLayer&) = 0;
-        //virtual void forward_propagation(const ConvLayer&) = 0;
-        //virtual void forward_propagation(const PoolLayer&) = 0;
+        std::vector<Matrix> m_activation;
 
-        virtual void back_propagation(const CoreLayer&) = 0;
-        //virtual void back_propagation(const ConvLayer&) = 0;
-        //virtual void back_propagation(const PoolLayer&) = 0;
+        LayerShape m_input_shape;
+        LayerShape m_output_shape;
+    public:
+        Layer(LayerShape);
+
+        virtual void compile() = 0;
+
+        void set_input_shape(LayerShape t_shape){ m_input_shape = t_shape; }
+        void set_output_shape(LayerShape t_shape){ m_output_shape = t_shape; }
+        LayerShape get_input_shape() const { return m_input_shape; }
+        LayerShape get_output_shape() const { return m_output_shape; }
+
+        void set_activation(const std::vector<float>&);
+        const std::vector<Matrix>& get_activation() const { return m_activation; }
+
+        virtual void forward_propagation(const Layer&) = 0;
+        virtual void back_propagation(const Layer&) = 0;
 
         virtual Layer* copy() const = 0;
     };

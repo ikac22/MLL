@@ -7,16 +7,26 @@
 
 namespace MLL{
     class Network{
-    private:
-        std::vector< std::reference_wrapper<Layer> > m_layer;
     public:
-        void add(const Layer& tl){ m_layer.push_back(*tl.copy()); }
-        Layer& get_first(){ return m_layer[0]; }        // TODO: Remove
+        std::vector< std::reference_wrapper<Layer> > m_layer;
+        int m_layer_count;
 
-        //void compile();
+        Layer& m_input_layer(){ return m_layer.front().get(); }
+        Layer& m_output_layer(){ return m_layer.back().get(); }
+    public:
+        Network();
+
+        void add(const Layer& tl){
+            m_layer.push_back(*tl.copy());
+            ++m_layer_count;
+        }
+
+        void compile();
         //void fit();
         //void evaluate();
-        //const std::vector<double>& predict();
+
+        // Given an array of input data, return the predicted results
+        const std::vector<float>& predict(const std::vector<float>&);
 
         //void load_from_file();
         //void save_to_file();

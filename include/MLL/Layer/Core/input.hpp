@@ -6,7 +6,14 @@ namespace MLL{
     private:
 
     public:
-        
+        Input(int);
+
+        void compile();
+
+        void forward_propagation(const Layer&);
+        void back_propagation(const Layer&);
+
+        Layer* copy() const { return new Input(*this); }
     };
 }
 

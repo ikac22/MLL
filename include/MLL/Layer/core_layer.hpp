@@ -12,10 +12,16 @@ namespace MLL{
     private:
 
     protected:
-        Matrix m_activation;
-        Matrix m_sum;
+
     public:
         CoreLayer(int);
+
+        virtual void compile();
+
+        virtual void forward_propagation(const Layer&) = 0;
+        virtual void back_propagation(const Layer&) = 0;
+
+        virtual Layer* copy() const = 0;
     };
 }
 

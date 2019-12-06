@@ -8,12 +8,16 @@
 namespace MLL{
     class Dense : public CoreLayer{
     private:
-        Matrix m_weight;
-        Matrix m_bias;
-
         ActivationFunction m_fun;
     public:
         Dense(int, Activation);
+
+        void compile();
+
+        void forward_propagation(const Layer&);
+        void back_propagation(const Layer&);
+
+        Layer* copy() const { return new Dense(*this); }
     };
 }
 
