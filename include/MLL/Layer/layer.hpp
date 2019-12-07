@@ -15,6 +15,7 @@ namespace MLL{
 
     public:
         std::vector<Matrix> m_activation;
+        std::vector<Matrix> m_sum;
 
         LayerShape m_input_shape;
         LayerShape m_output_shape;

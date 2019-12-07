@@ -22,10 +22,11 @@ namespace MLL{
         }
 
         void compile();
+
         //void fit();
+
         //void evaluate();
 
-        // Given an array of input data, return the predicted results
         const std::vector<float>& predict(const std::vector<float>&);
 
         //void load_from_file();

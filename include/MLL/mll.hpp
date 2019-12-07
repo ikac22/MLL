@@ -9,7 +9,10 @@
 #include<MLL/Layer/Core/flatten.hpp>
 #include<MLL/Layer/Core/input.hpp>
 
+#include<MLL/Layer/Conv/conv2d.hpp>
+
 #include<MLL/Network/network.hpp>
 
 #include<MLL/Optimizer/optimizer.hpp>
+
 #endif//_MLL_HPP

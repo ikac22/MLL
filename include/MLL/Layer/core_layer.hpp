@@ -7,7 +7,6 @@
 #include<MLL/Layer/layer.hpp>
 
 namespace MLL{
-
     class CoreLayer : public Layer{
     private:
 
@@ -16,7 +15,7 @@ namespace MLL{
     public:
         CoreLayer(int);
 
-        virtual void compile();
+        virtual void compile() = 0;
 
         virtual void forward_propagation(const Layer&) = 0;
         virtual void back_propagation(const Layer&) = 0;

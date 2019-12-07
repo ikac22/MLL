@@ -158,18 +158,14 @@ namespace Activations{
 Layer::Layer(LayerShape t_output_shape) :
 m_output_shape(t_output_shape){
     m_activation.resize(t_output_shape.c);
+    m_sum.resize(t_output_shape.c);
 
     for(auto& ch : m_activation) ch.resize(t_output_shape.h, t_output_shape.w);
+    for(auto& ch : m_sum) ch.resize(t_output_shape.h, 1);
 }
-
-
 
 CoreLayer::CoreLayer(int t_size) :
 Layer(LayerShape(t_size, 1, 1)){
-
-}
-
-void CoreLayer::compile(){
 
 }
 
@@ -180,11 +176,13 @@ m_fun(t_act){
 }
 
 void Dense::compile(){
-
+    m_bias.resize(m_output_shape.h, 1);
+    m_weight.resize(m_output_shape.h, m_input_shape.h);
 }
 
 void Dense::forward_propagation(const Layer& t_prev_layer){
-
+    m_sum[0] = m_weight * t_prev_layer.get_activation()[0] + m_bias;
+    m_activation[0] = m_fun(m_sum[0]);
 }
 
 void Dense::back_propagation(const Layer& t_prev_layer){
@@ -196,7 +194,8 @@ CoreLayer(0){}
 
 void Flatten::compile(){
     int output_size = m_input_shape.h * m_input_shape.w * m_input_shape.c;
-    m_output_shape = LayerShape(output_size, 1, 1);
+    set_output_shape({output_size, 1, 1});
+    m_activation[0].resize(output_size, 1);
 }
 
 void Flatten::forward_propagation(const Layer& t_prev_layer){
@@ -210,9 +209,7 @@ void Flatten::forward_propagation(const Layer& t_prev_layer){
     }
 }
 
-void Flatten::back_propagation(const Layer& t_prev_layer){
-
-}
+void Flatten::back_propagation(const Layer& t_prev_layer){}
 
 Input::Input(int t_size) :
 CoreLayer(t_size){}
@@ -220,23 +217,65 @@ CoreLayer(t_size){}
 void Input::compile(){}
 
 void Input::forward_propagation(const Layer& t_prev_layer){
-    std::cout << "Error:" << std::endl;
-    std::cout << "forward_propagation can't be called in Input layer" << std::endl;
+    std::cout << "Error: \n";
+    std::cout << "Input::forward_propagation called\n";
+    exit(0);
 }
 
 void Input::back_propagation(const Layer& t_prev_layer){}
+
+ConvLayer::ConvLayer(LayerShape t_shape) :
+Layer(t_shape){}
+
+Conv2D::Conv2D(int t_kernel_count, LayerShape t_kernel_size, Padding t_pad,
+               int t_stride, Activation t_act, LayerShape t_input_shape) :
+ConvLayer({0, 0, 0}),
+m_kernel_count(t_kernel_count),
+m_kernel_size(t_kernel_size),
+m_stride(t_stride),
+m_fun(t_act){
+    if(t_pad == Padding::same)
+        m_pad_size = (std::max(m_kernel_size.h, m_kernel_size.w) - 1) / 2;
+    else
+        m_pad_size = 0;
+
+    set_input_shape(t_input_shape);
+}
+
+void Conv2D::compile(){
+    LayerShape is = get_input_shape();
+    set_output_shape(LayerShape(
+        (is.h - m_kernel_size.h + 2 * m_pad_size) / m_stride + 1,
+        (is.w - m_kernel_size.w + 2 * m_pad_size) / m_stride + 1,
+        m_kernel_count
+    ));
+}
+
+void Conv2D::forward_propagation(const Layer& t_prev_layer){
+    int p = m_pad_size;
+    for(int c = 0; c < m_kernel_count; ++c){
+        for(int i = 0; i < get_output_shape().h; ++i){
+            for(int j = 0; j < get_output_shape().w; ++j){
+                m_activation[c][i+p][j+p] = get_kernel_sum(t_prev_layer,
+                                                           m_kernel[c],
+                                                           m_bias[c],
+                                                           i, j);
+                // TODO: Implement get_kernel_sum
+            }
+        }
+    }
+}
+
+void Conv2D::back_propagation(const Layer& t_prev_layer){}
 
 Network::Network() :
 m_layer_count(0){}
 
 void Network::compile(){
-    m_layer[0].get().set_input_shape(m_layer[0].get().get_output_shape());
+    m_layer[0].get().compile();
 
     for(int i = 1; i < m_layer_count; ++i){
         m_layer[i].get().set_input_shape(m_layer[i-1].get().get_output_shape());
-    }
-
-    for(int i = 0; i < m_layer_count; ++i){
         m_layer[i].get().compile();
     }
 }

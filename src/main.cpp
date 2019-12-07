@@ -11,7 +11,8 @@ void debug(){
 int main(){
     Network net;
 
-    net.add(Input(784));
+    net.add(Conv2D(6, {3, 3}, Padding::valid, 1, Activation::ReLU, {28, 28}));
+    net.add(Flatten());
     net.add(Dense(300, Activation::ReLU));
     net.add(Dense(150, Activation::ReLU));
     net.add(Dense(10, Activation::Sigmoid));
