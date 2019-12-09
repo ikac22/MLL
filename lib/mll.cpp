@@ -95,6 +95,25 @@ void gemm(const Matrix& t_matrix1, const Matrix& t_matrix2, Matrix& result){
     }
 }
 
+float get_kernel_sum(const std::vector<Matrix>& t_prev_activation,
+                     const std::vector<Matrix>& t_kernels,
+                     LayerShape t_kernel_size,
+                     float t_bias, int ti, int tj){
+    float res = 0;
+    int pi = t_kernel_size.h / 2;
+    int pj = t_kernel_size.w / 2;
+
+    for(int c = 0; c < t_prev_activation.size(); ++c){
+        for(int i = 0; i < t_kernel_size.h; ++i){
+            for(int j = 0; j < t_kernel_size.w; ++j){
+                res += t_kernels[c][i][j]*t_prev_activation[c][ti+i-pi][tj+j-pj];
+            }
+        }
+    }
+
+    return res;
+}
+
 ActivationFunction::ActivationFunction(Activation t_act){
     switch((int)t_act){
         case 0:{    // Linear
@@ -185,6 +204,10 @@ void Dense::forward_propagation(const Layer& t_prev_layer){
     m_activation[0] = m_fun(m_sum[0]);
 }
 
+void Dense::back_propagation(const std::vector<float>& t_target){
+    // TODO: Calculate the gradient of output layer with given target values
+}
+
 void Dense::back_propagation(const Layer& t_prev_layer){
 
 }
@@ -209,6 +232,7 @@ void Flatten::forward_propagation(const Layer& t_prev_layer){
     }
 }
 
+void Flatten::back_propagation(const std::vector<float>& t_target){}
 void Flatten::back_propagation(const Layer& t_prev_layer){}
 
 Input::Input(int t_size) :
@@ -222,6 +246,7 @@ void Input::forward_propagation(const Layer& t_prev_layer){
     exit(0);
 }
 
+void Input::back_propagation(const std::vector<float>& t_target){}
 void Input::back_propagation(const Layer& t_prev_layer){}
 
 ConvLayer::ConvLayer(LayerShape t_shape) :
@@ -234,7 +259,7 @@ m_kernel_count(t_kernel_count),
 m_kernel_size(t_kernel_size),
 m_stride(t_stride),
 m_fun(t_act){
-    if(t_pad == Padding::same)
+    if(t_pad != Padding::same)
         m_pad_size = (std::max(m_kernel_size.h, m_kernel_size.w) - 1) / 2;
     else
         m_pad_size = 0;
@@ -249,6 +274,20 @@ void Conv2D::compile(){
         (is.w - m_kernel_size.w + 2 * m_pad_size) / m_stride + 1,
         m_kernel_count
     ));
+
+    m_bias.resize(m_kernel_count);
+    m_kernel.resize(m_kernel_count);
+    for(int i = 0; i < m_kernel_count; ++i){
+        m_kernel[i].resize(get_input_shape().c);
+        for(int j = 0; j < get_input_shape().c; ++j){
+            m_kernel[i][j].resize(m_kernel_size.h, m_kernel_size.w);
+        }
+    }
+
+    m_activation.resize(m_kernel_count);
+    for(int c = 0; c < m_kernel_count; ++c){
+        m_activation[c].resize(get_output_shape().h, get_output_shape().w);
+    }
 }
 
 void Conv2D::forward_propagation(const Layer& t_prev_layer){
@@ -256,16 +295,20 @@ void Conv2D::forward_propagation(const Layer& t_prev_layer){
     for(int c = 0; c < m_kernel_count; ++c){
         for(int i = 0; i < get_output_shape().h; ++i){
             for(int j = 0; j < get_output_shape().w; ++j){
-                m_activation[c][i+p][j+p] = get_kernel_sum(t_prev_layer,
-                                                           m_kernel[c],
-                                                           m_bias[c],
-                                                           i, j);
+                m_activation[c][i][j] = get_kernel_sum(
+                    t_prev_layer.get_activation(),
+                    m_kernel[c],
+                    m_kernel_size,
+                    m_bias[c],
+                    p+i, p+j
+                );
                 // TODO: Implement get_kernel_sum
             }
         }
     }
 }
 
+void Conv2D::back_propagation(const std::vector<float>& t_target){}
 void Conv2D::back_propagation(const Layer& t_prev_layer){}
 
 Network::Network() :
@@ -278,6 +321,8 @@ void Network::compile(){
         m_layer[i].get().set_input_shape(m_layer[i-1].get().get_output_shape());
         m_layer[i].get().compile();
     }
+
+    is_compiled = true;
 }
 
 const std::vector<float>& Network::predict(const std::vector<float>& t_input){
@@ -290,6 +335,34 @@ const std::vector<float>& Network::predict(const std::vector<float>& t_input){
     return m_output_layer().get_activation()[0].to_array();
 }
 
+void Network::fit(const std::vector<float>& t_data,
+                  const std::vector<int>& t_labels){
+    if(!is_compiled){
+        std::cout << "Can't fit uncompiled model!" << std::endl;
+        exit(0);
+    }
 
+    int data_size = t_data.size();
+    int iter_count = t_labels.size();
+    LayerShape input_shape = m_input_layer().get_input_shape();
+    int input_size = input_shape.h * input_shape.w * input_shape.c;
+    LayerShape output_shape = m_output_layer().get_output_shape();
+    int output_size = output_shape.h * output_shape.w * output_shape.c;
 
+    for(int i = 0; i < iter_count; ++i){
+        std::vector<float> iter_input(t_data.begin() + i * input_size,
+                                      t_data.begin() + (i+1) * input_size);
+
+        auto res = predict(iter_input);
+
+        std::vector<float> target(m_output_layer().get_output_shape().h);
+        target[t_labels[i]] = 1;
+
+        m_output_layer().back_propagation(target);
+
+        for(int j = m_layer_count - 2; j > 0; --j){
+            m_layer[j].get().back_propagation(m_layer[j+1]);
+        }
+    }
+}
 }

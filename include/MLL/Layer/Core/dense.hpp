@@ -10,7 +10,7 @@ namespace MLL{
     private:
         Matrix m_weight;
         Matrix m_bias;
-        
+
         ActivationFunction m_fun;
     public:
         Dense(int, Activation);
@@ -18,6 +18,7 @@ namespace MLL{
         void compile();
 
         void forward_propagation(const Layer&);
+        void back_propagation(const std::vector<float>&);
         void back_propagation(const Layer&);
 
         Layer* copy() const { return new Dense(*this); }

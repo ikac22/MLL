@@ -33,11 +33,11 @@ namespace MLL{
         const std::vector<Matrix>& get_activation() const { return m_activation; }
 
         virtual void forward_propagation(const Layer&) = 0;
+        virtual void back_propagation(const std::vector<float>&) = 0;
         virtual void back_propagation(const Layer&) = 0;
 
         virtual Layer* copy() const = 0;
     };
-
 }
 
 #endif//_MLL_LAYER_LAYER_HPP

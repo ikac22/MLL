@@ -11,6 +11,8 @@ namespace MLL{
         std::vector< std::reference_wrapper<Layer> > m_layer;
         int m_layer_count;
 
+        bool is_compiled = false;
+
         Layer& m_input_layer(){ return m_layer.front().get(); }
         Layer& m_output_layer(){ return m_layer.back().get(); }
     public:
@@ -23,7 +25,7 @@ namespace MLL{
 
         void compile();
 
-        //void fit();
+        void fit(const std::vector<float>&, const std::vector<int>&);
 
         //void evaluate();
 

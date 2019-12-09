@@ -5,6 +5,8 @@
 #include<vector>
 
 namespace MLL{
+    struct LayerShape;
+
     class Matrix{
     private:
         std::vector< std::vector<float> > m_matrix;
@@ -34,6 +36,10 @@ namespace MLL{
 
     Matrix& operator+(const Matrix&, const Matrix&);
     Matrix& operator*(const Matrix&, const Matrix&);
+
+    void gemm(const Matrix&, const Matrix&, Matrix&);
+    float get_kernel_sum(const std::vector<Matrix>&, const std::vector<Matrix>&,
+                         LayerShape, float, int, int);
 }
 
 #endif//_MLL_MATH_MATRIX_HPP

@@ -15,7 +15,7 @@ namespace MLL{
         int m_stride;
         ActivationFunction m_fun;
 
-        std::vector< std::vector< Matrix > > m_kernel;
+        std::vector< std::vector<Matrix> > m_kernel;
         std::vector<float> m_bias;
     public:
         Conv2D(int, LayerShape, Padding = Padding::valid, int = 1,
@@ -24,6 +24,7 @@ namespace MLL{
         void compile();
 
         void forward_propagation(const Layer&);
+        void back_propagation(const std::vector<float>&);
         void back_propagation(const Layer&);
 
         Layer* copy() const { return new Conv2D(*this); }
