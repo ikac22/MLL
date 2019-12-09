@@ -4,6 +4,7 @@
 #include<MLL/Layer/core_layer.hpp>
 
 #include<MLL/Math/activation.hpp>
+#include<MLL/Math/gradient.hpp>
 
 namespace MLL{
     class Dense : public CoreLayer{
@@ -11,6 +12,7 @@ namespace MLL{
         Matrix m_weight;
         Matrix m_bias;
 
+        Gradient<Dense> m_gradient;
         ActivationFunction m_fun;
     public:
         Dense(int, Activation);

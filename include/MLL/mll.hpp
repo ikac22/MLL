@@ -2,7 +2,7 @@
 #define _MLL_HPP
 
 #include<MLL/Math/matrix.hpp>
-#include<MLL/Math/gemm.hpp>
+#include<MLL/Math/gradient.hpp>
 #include<MLL/Math/activation.hpp>
 
 #include<MLL/Layer/Core/dense.hpp>

@@ -114,6 +114,12 @@ float get_kernel_sum(const std::vector<Matrix>& t_prev_activation,
     return res;
 }
 
+Gradient<Dense>::Gradient(){
+    m_weight.resize();
+    m_activation.resize();
+    m_bias.resize();
+}
+
 ActivationFunction::ActivationFunction(Activation t_act){
     switch((int)t_act){
         case 0:{    // Linear

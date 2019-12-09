@@ -4,10 +4,6 @@
 
 using namespace MLL;
 
-void debug(){
-
-}
-
 int main(){
     Network net;
 
