@@ -23,8 +23,8 @@ namespace MLL{
         std::vector<float>& operator[](int i){ return m_matrix[i]; }
         const std::vector<float>& operator[](int i) const { return m_matrix[i]; }
 
-        friend Matrix& operator+(const Matrix&, const Matrix&);
-        friend Matrix& operator*(const Matrix&, const Matrix&);
+        friend const Matrix& operator+(const Matrix&, const Matrix&);
+        friend const Matrix& operator*(const Matrix&, const Matrix&);
 
         void resize(int, int);
 
@@ -34,8 +34,8 @@ namespace MLL{
         const std::vector<float>& to_array() const;
     };
 
-    Matrix& operator+(const Matrix&, const Matrix&);
-    Matrix& operator*(const Matrix&, const Matrix&);
+    const Matrix& operator+(const Matrix&, const Matrix&);
+    const Matrix& operator*(const Matrix&, const Matrix&);
 
     void gemm(const Matrix&, const Matrix&, Matrix&);
     float get_kernel_sum(const std::vector<Matrix>&, const std::vector<Matrix>&,

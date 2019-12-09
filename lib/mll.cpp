@@ -39,7 +39,7 @@ void Matrix::resize(int t_height, int t_width){
     for(auto& row : m_matrix) row.resize(m_width);
 }
 
-Matrix& operator+(const Matrix& t_matrix1, const Matrix& t_matrix2){
+const Matrix& operator+(const Matrix& t_matrix1, const Matrix& t_matrix2){
     if( t_matrix1.get_height() !=  t_matrix2.get_height() ||
         t_matrix1.get_width()  !=  t_matrix2.get_width() ){
         std::cout << "Unmatched matrix sizes : operator+" << std::endl;
@@ -58,7 +58,7 @@ Matrix& operator+(const Matrix& t_matrix1, const Matrix& t_matrix2){
     return result;
 }
 
-Matrix& operator*(const Matrix& t_matrix1, const Matrix& t_matrix2){
+const Matrix& operator*(const Matrix& t_matrix1, const Matrix& t_matrix2){
     if(t_matrix1.get_width() != t_matrix2.get_height()){
         std::cout << "Unmatched matrix sizes : operator*" << std::endl;
         exit(0x902);
@@ -110,14 +110,9 @@ float get_kernel_sum(const std::vector<Matrix>& t_prev_activation,
             }
         }
     }
+    res += t_bias;
 
     return res;
-}
-
-Gradient<Dense>::Gradient(){
-    m_weight.resize();
-    m_activation.resize();
-    m_bias.resize();
 }
 
 ActivationFunction::ActivationFunction(Activation t_act){
@@ -194,10 +189,9 @@ Layer(LayerShape(t_size, 1, 1)){
 
 }
 
-Dense::Dense(int t_size, Activation t_act) :
+Dense::Dense(int t_size, Activation t_act):
 CoreLayer(t_size),
 m_fun(t_act){
-
 }
 
 void Dense::compile(){

@@ -23,7 +23,6 @@ namespace MLL{
         Matrix m_activation;
         Matrix m_bias;
     public:
-        Gradient();
 
         Matrix& w(){ return m_weight; }
         Matrix& a(){ return m_activation; }
