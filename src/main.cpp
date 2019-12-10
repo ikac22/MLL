@@ -1,10 +1,17 @@
 #include<iostream>
 
 #include<MLL/mll.hpp>
+#include<mnist_parser/mnist_parser.hpp>
 
 using namespace MLL;
 
 int main(){
+    auto tr_data = get_data("res/mnist/train-images-idx3-ubyte");
+    auto tr_labels = get_labels("res/mnist/train-labels-idx1-ubyte");
+
+    auto ev_data = get_data("res/mnist/t10k-images-idx3-ubyte");
+    auto ev_labels = get_labels("res/mnist/t10k-labels-idx1-ubyte");
+
     Network net;
 
     net.add(Conv2D(6, {3, 3}, Padding::valid, 1, Activation::ReLU, {28, 28}));
