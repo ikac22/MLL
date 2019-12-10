@@ -9,12 +9,7 @@ namespace MLL{
     class Input;
 
     template<class T>
-    class Gradient{
-    private:
-
-    public:
-
-    };
+    class Gradient{};
 
     template<>
     class Gradient<Dense>{
@@ -23,10 +18,11 @@ namespace MLL{
         Matrix m_activation;
         Matrix m_bias;
     public:
-
         Matrix& w(){ return m_weight; }
         Matrix& a(){ return m_activation; }
         Matrix& b(){ return m_bias; }
+
+        void set_size(int, int);
     };
 }
 

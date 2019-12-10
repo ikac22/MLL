@@ -115,6 +115,12 @@ float get_kernel_sum(const std::vector<Matrix>& t_prev_activation,
     return res;
 }
 
+void Gradient<Dense>::set_size(int h, int w){
+    m_weight.resize(h, w);
+    m_activation.resize(h, 1);
+    m_bias.resize(h, 1);
+}
+
 ActivationFunction::ActivationFunction(Activation t_act){
     switch((int)t_act){
         case 0:{    // Linear
@@ -197,6 +203,8 @@ m_fun(t_act){
 void Dense::compile(){
     m_bias.resize(m_output_shape.h, 1);
     m_weight.resize(m_output_shape.h, m_input_shape.h);
+
+    m_gradient.set_size(m_output_shape.h, m_input_shape.h);
 }
 
 void Dense::forward_propagation(const Layer& t_prev_layer){
