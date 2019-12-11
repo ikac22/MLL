@@ -49,7 +49,7 @@ std::vector<float> get_data(const char* t_filename){
 
     std::vector<float> result(data_size * row_count *  col_count);
 
-    std::cout << "Loading the data...\n";
+    std::cout << "Loading data...\n";
     for(auto& el : result){
         unsigned char tmp;
         fin.read((char*)&tmp, sizeof(unsigned char));

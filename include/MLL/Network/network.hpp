@@ -25,7 +25,7 @@ namespace MLL{
 
         void compile();
 
-        void fit(const std::vector<float>&, const std::vector<int>&);
+        void fit(const std::vector<float>&, const std::vector<int>&, int);
 
         //void evaluate();
 

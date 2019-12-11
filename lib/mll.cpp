@@ -1,5 +1,7 @@
 #include<MLL/mll.hpp>
 
+#include<thread>
+
 namespace MLL{
 
 Matrix::Matrix(){ resize(0, 0); }
@@ -181,6 +183,18 @@ namespace Activations{
     float relu_d(float x){ return x > 0; }
 }
 
+#define PBSTR "============================================================"
+#define PBWIDTH 60
+
+void loading_bar(float percent, int cur_epoch, int total_epoch){
+    int val = (int) (percent * 100);
+    int lpad = (int) (percent * PBWIDTH);
+    int rpad = PBWIDTH - lpad;
+    printf("\rEpoch %d/%d : [%.*s>%*s] %3d%%", cur_epoch, total_epoch,
+           lpad, PBSTR, rpad, "", val);
+    fflush(stdout);
+}
+
 Layer::Layer(LayerShape t_output_shape) :
 m_output_shape(t_output_shape){
     m_activation.resize(t_output_shape.c);
@@ -267,7 +281,7 @@ m_kernel_count(t_kernel_count),
 m_kernel_size(t_kernel_size),
 m_stride(t_stride),
 m_fun(t_act){
-    if(t_pad != Padding::same)
+    if(t_pad == Padding::same)
         m_pad_size = (std::max(m_kernel_size.h, m_kernel_size.w) - 1) / 2;
     else
         m_pad_size = 0;
@@ -344,7 +358,7 @@ const std::vector<float>& Network::predict(const std::vector<float>& t_input){
 }
 
 void Network::fit(const std::vector<float>& t_data,
-                  const std::vector<int>& t_labels){
+                  const std::vector<int>& t_labels, int t_epoch_count){
     if(!is_compiled){
         std::cout << "Can't fit uncompiled model!" << std::endl;
         exit(0);
@@ -357,20 +371,30 @@ void Network::fit(const std::vector<float>& t_data,
     LayerShape output_shape = m_output_layer().get_output_shape();
     int output_size = output_shape.h * output_shape.w * output_shape.c;
 
-    for(int i = 0; i < iter_count; ++i){
-        std::vector<float> iter_input(t_data.begin() + i * input_size,
-                                      t_data.begin() + (i+1) * input_size);
+    for(int e = 0; e < t_epoch_count; ++e){
 
-        auto res = predict(iter_input);
+        // TODO : shuffle_data(t_data, t_labels);
 
-        std::vector<float> target(m_output_layer().get_output_shape().h);
-        target[t_labels[i]] = 1;
+        for(int i = 0; i < iter_count; ++i){
+            std::vector<float> iter_input(t_data.begin() + i * input_size,
+                                          t_data.begin() + (i+1) * input_size);
 
-        m_output_layer().back_propagation(target);
+            auto res = predict(iter_input);
 
-        for(int j = m_layer_count - 2; j > 0; --j){
-            m_layer[j].get().back_propagation(m_layer[j+1]);
+            //std::vector<float> target(m_output_layer().get_output_shape().h);
+            //target[t_labels[i]] = 1;
+
+            //m_output_layer().back_propagation(target);
+
+            for(int j = m_layer_count - 2; j > 0; --j){
+                //m_layer[j].get().back_propagation(m_layer[j+1]);
+            }
+
+            loading_bar((i+1) / (float)iter_count, e + 1, t_epoch_count);
         }
+        // TODO : print_info();
+
+        std::cout << std::endl;
     }
 }
 }
