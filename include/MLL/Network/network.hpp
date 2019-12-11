@@ -18,6 +18,7 @@ namespace MLL{
         Layer& m_output_layer(){ return m_layer.back().get(); }
 
         void shuffle_data(std::vector<float>&, std::vector<int>&);
+        float get_cost(const std::vector<float>&, const std::vector<float>&);
     public:
         Network();
 
@@ -30,7 +31,7 @@ namespace MLL{
 
         const std::vector<float>& predict(const std::vector<float>&);
 
-        void fit(const std::vector<float>&, const std::vector<int>&, int);
+        void fit(std::vector<float>&, std::vector<int>&, int);
 
         //void evaluate();
 

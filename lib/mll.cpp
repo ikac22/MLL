@@ -186,13 +186,27 @@ namespace Activations{
 #define PBSTR "============================================================"
 #define PBWIDTH 60
 
-void loading_bar(float percent, int cur_epoch, int total_epoch){
+void loading_bar(float percent, int cur_epoch, int total_epoch,
+                 int correct, int g, float cost_sum){
     int val = (int) (percent * 100);
     int lpad = (int) (percent * PBWIDTH);
     int rpad = PBWIDTH - lpad;
-    printf("\rEpoch %d/%d : [%.*s>%*s] %3d%%", cur_epoch, total_epoch,
-           lpad, PBSTR, rpad, "", val);
+    float loss = 1 - (correct / (float)g);
+    float avg_cost = cost_sum / (float)g;
+    printf("\rEpoch %d/%d : [%.*s>%*s] %3d%%  Loss: %.*f Avg cost: %.*f  ", cur_epoch,
+           total_epoch, lpad, PBSTR, rpad, "", val, 4, loss, 4, avg_cost);
     fflush(stdout);
+}
+
+int get_max_position(const std::vector<float>& t_vect){
+    int p = 0;
+    for(int i = 1; i < t_vect.size(); ++i){
+        if(t_vect[i] > t_vect[p]){
+            p = i;
+        }
+    }
+
+    return p;
 }
 
 Layer::Layer(LayerShape t_output_shape) :
@@ -226,7 +240,8 @@ void Dense::forward_propagation(const Layer& t_prev_layer){
     m_activation[0] = m_fun(m_sum[0]);
 }
 
-void Dense::back_propagation(const std::vector<float>& t_target, const Layer& t_prev_layer){
+void Dense::back_propagation(const std::vector<float>& t_target,
+                             const Layer& t_prev_layer){
     // TODO: Calculate the gradient of output layer with given target values
     auto& agrad = m_gradient.a();
     auto& wgrad = m_gradient.w();
@@ -243,7 +258,8 @@ void Dense::back_propagation(const std::vector<float>& t_target, const Layer& t_
     }
 }
 
-void Dense::back_propagation(const Layer& t_next_layer, const Layer& t_prev_layer){
+void Dense::back_propagation(const Layer& t_next_layer,
+                             const Layer& t_prev_layer){
 
 }
 
@@ -267,8 +283,10 @@ void Flatten::forward_propagation(const Layer& t_prev_layer){
     }
 }
 
-void Flatten::back_propagation(const std::vector<float>& t_target, const Layer& t_prev_layer){}
-void Flatten::back_propagation(const Layer& t_next_layer, const Layer& t_prev_layer){}
+void Flatten::back_propagation(const std::vector<float>& t_target,
+                               const Layer& t_prev_layer){}
+void Flatten::back_propagation(const Layer& t_next_layer,
+                               const Layer& t_prev_layer){}
 
 Input::Input(int t_size) :
 CoreLayer(t_size){}
@@ -282,9 +300,6 @@ void Input::forward_propagation(const Layer& t_prev_layer){
     std::cout << "Input::forward_propagation called\n";
     exit(0);
 }
-
-void Input::back_propagation(const std::vector<float>& t_target, const Layer& t_prev_layer){}
-void Input::back_propagation(const Layer& t_next_layer, const Layer& t_prev_layer){}
 
 ConvLayer::ConvLayer(LayerShape t_shape) :
 Layer(t_shape){}
@@ -345,8 +360,10 @@ void Conv2D::forward_propagation(const Layer& t_prev_layer){
     }
 }
 
-void Conv2D::back_propagation(const std::vector<float>& t_target, const Layer& t_prev_layer){}
-void Conv2D::back_propagation(const Layer& t_next_layer, const Layer& t_prev_layer){}
+void Conv2D::back_propagation(const std::vector<float>& t_target,
+                              const Layer& t_prev_layer){}
+void Conv2D::back_propagation(const Layer& t_next_layer,
+                              const Layer& t_prev_layer){}
 
 Network::Network() :
 m_layer_count(0){}
@@ -372,8 +389,9 @@ const std::vector<float>& Network::predict(const std::vector<float>& t_input){
     return m_output_layer().get_activation()[0].to_array();
 }
 
-void Network::fit(const std::vector<float>& t_data,
-                  const std::vector<int>& t_labels, int t_epoch_count){
+void Network::fit(std::vector<float>& t_data,
+                  std::vector<int>& t_labels,
+                  int t_epoch_count){
     if(!is_compiled){
         std::cout << "Can't fit uncompiled model!" << std::endl;
         exit(0);
@@ -388,6 +406,9 @@ void Network::fit(const std::vector<float>& t_data,
 
     for(int e = 0; e < t_epoch_count; ++e){
 
+        int correct = 0;
+        float cost_sum = 0;
+
         shuffle_data(t_data, t_labels);
 
         for(int i = 0; i < iter_count; ++i){
@@ -399,18 +420,29 @@ void Network::fit(const std::vector<float>& t_data,
             std::vector<float> target(m_output_layer().get_output_shape().h);
             target[t_labels[i]] = 1;
 
+            cost_sum += get_cost(target, res);
+            if(get_max_position(res) == t_labels[i]) ++correct;
+
             //m_output_layer().back_propagation(target);
 
             for(int j = m_layer_count - 2; j > 0; --j){
                 //m_layer[j].get().back_propagation(m_layer[j+1]);
             }
 
-            loading_bar((i+1) / (float)iter_count, e + 1, t_epoch_count);
+            loading_bar((i+1) / (float)iter_count, e + 1, t_epoch_count,
+                        correct, i, cost_sum);
         }
-        // TODO : print_info();
-
         std::cout << std::endl;
     }
+}
+
+float Network::get_cost(const std::vector<float>& t_target,
+                        const std::vector<float>& t_output){
+    float res = 0;
+    for(int i = 0; i < t_target.size(); ++i){
+        res += pow(t_target[i] - t_output[i], 2);
+    }
+    return res;
 }
 
 void Network::shuffle_data(std::vector<float>& t_data, std::vector<int>& t_label){

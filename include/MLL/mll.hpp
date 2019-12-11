@@ -4,6 +4,7 @@
 #include<MLL/Math/matrix.hpp>
 #include<MLL/Math/gradient.hpp>
 #include<MLL/Math/activation.hpp>
+#include<MLL/Math/utils.hpp>
 
 #include<MLL/Layer/Core/dense.hpp>
 #include<MLL/Layer/Core/flatten.hpp>
