@@ -226,11 +226,24 @@ void Dense::forward_propagation(const Layer& t_prev_layer){
     m_activation[0] = m_fun(m_sum[0]);
 }
 
-void Dense::back_propagation(const std::vector<float>& t_target){
+void Dense::back_propagation(const std::vector<float>& t_target, const Layer& t_prev_layer){
     // TODO: Calculate the gradient of output layer with given target values
+    auto& agrad = m_gradient.a();
+    auto& wgrad = m_gradient.w();
+    auto& bgrad = m_gradient.b();
+    auto& prev_act = t_prev_layer.get_activation();
+
+    for(int i = 0; i < t_target.size() ;i++){
+        agrad[i][0] = 2 * (t_target[i] - m_activation[0][i][0]);
+
+        for(int j = 0; j < t_prev_layer.get_input_shape().h ;j++)
+            wgrad[i][j] = prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
+
+        bgrad[i][0] = m_fun[m_sum[0][i][0]] * agrad[i][0];
+    }
 }
 
-void Dense::back_propagation(const Layer& t_prev_layer){
+void Dense::back_propagation(const Layer& t_next_layer, const Layer& t_prev_layer){
 
 }
 
@@ -254,8 +267,8 @@ void Flatten::forward_propagation(const Layer& t_prev_layer){
     }
 }
 
-void Flatten::back_propagation(const std::vector<float>& t_target){}
-void Flatten::back_propagation(const Layer& t_prev_layer){}
+void Flatten::back_propagation(const std::vector<float>& t_target, const Layer& t_prev_layer){}
+void Flatten::back_propagation(const Layer& t_next_layer, const Layer& t_prev_layer){}
 
 Input::Input(int t_size) :
 CoreLayer(t_size){}
@@ -270,8 +283,8 @@ void Input::forward_propagation(const Layer& t_prev_layer){
     exit(0);
 }
 
-void Input::back_propagation(const std::vector<float>& t_target){}
-void Input::back_propagation(const Layer& t_prev_layer){}
+void Input::back_propagation(const std::vector<float>& t_target, const Layer& t_prev_layer){}
+void Input::back_propagation(const Layer& t_next_layer, const Layer& t_prev_layer){}
 
 ConvLayer::ConvLayer(LayerShape t_shape) :
 Layer(t_shape){}
@@ -332,8 +345,8 @@ void Conv2D::forward_propagation(const Layer& t_prev_layer){
     }
 }
 
-void Conv2D::back_propagation(const std::vector<float>& t_target){}
-void Conv2D::back_propagation(const Layer& t_prev_layer){}
+void Conv2D::back_propagation(const std::vector<float>& t_target, const Layer& t_prev_layer){}
+void Conv2D::back_propagation(const Layer& t_next_layer, const Layer& t_prev_layer){}
 
 Network::Network() :
 m_layer_count(0){}
