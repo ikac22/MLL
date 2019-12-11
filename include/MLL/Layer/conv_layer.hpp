@@ -20,8 +20,8 @@ namespace MLL{
         virtual void compile() = 0;
 
         virtual void forward_propagation(const Layer&) = 0;
-        virtual void back_propagation(const std::vector<float>&) = 0;
-        virtual void back_propagation(const Layer&) = 0;
+        virtual void back_propagation(const std::vector<float>&, const Layer&) = 0;
+        virtual void back_propagation(const Layer&, const Layer&) = 0;
 
         virtual Layer* copy() const = 0;
     };

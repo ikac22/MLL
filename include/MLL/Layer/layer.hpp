@@ -30,11 +30,11 @@ namespace MLL{
         LayerShape get_output_shape() const { return m_output_shape; }
 
         void set_activation(const std::vector<float>&);
-        const std::vector<Matrix>& get_activation() const { return m_activation; }
+        virtual const std::vector<Matrix>& get_activation() const { return m_activation; }
 
         virtual void forward_propagation(const Layer&) = 0;
-        virtual void back_propagation(const std::vector<float>&) = 0;
-        virtual void back_propagation(const Layer&) = 0;
+        virtual void back_propagation(const std::vector<float>&, const Layer&) = 0;
+        virtual void back_propagation(const Layer&, const Layer&) = 0;
 
         virtual Layer* copy() const = 0;
     };
