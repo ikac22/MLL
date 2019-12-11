@@ -2,6 +2,7 @@
 #define _MLL_NETWORK_NETWORK_HPP
 
 #include<vector>
+#include<algorithm>
 
 #include<MLL/Layer/layer.hpp>
 
@@ -15,6 +16,8 @@ namespace MLL{
 
         Layer& m_input_layer(){ return m_layer.front().get(); }
         Layer& m_output_layer(){ return m_layer.back().get(); }
+
+        void shuffle_data(std::vector<float>&, std::vector<int>&);
     public:
         Network();
 
@@ -25,11 +28,11 @@ namespace MLL{
 
         void compile();
 
+        const std::vector<float>& predict(const std::vector<float>&);
+
         void fit(const std::vector<float>&, const std::vector<int>&, int);
 
         //void evaluate();
-
-        const std::vector<float>& predict(const std::vector<float>&);
 
         //void load_from_file();
         //void save_to_file();

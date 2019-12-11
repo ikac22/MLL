@@ -260,7 +260,9 @@ void Flatten::back_propagation(const Layer& t_prev_layer){}
 Input::Input(int t_size) :
 CoreLayer(t_size){}
 
-void Input::compile(){}
+void Input::compile(){
+    set_input_shape(m_output_shape);
+}
 
 void Input::forward_propagation(const Layer& t_prev_layer){
     std::cout << "Error: \n";
@@ -373,7 +375,7 @@ void Network::fit(const std::vector<float>& t_data,
 
     for(int e = 0; e < t_epoch_count; ++e){
 
-        // TODO : shuffle_data(t_data, t_labels);
+        shuffle_data(t_data, t_labels);
 
         for(int i = 0; i < iter_count; ++i){
             std::vector<float> iter_input(t_data.begin() + i * input_size,
@@ -381,8 +383,8 @@ void Network::fit(const std::vector<float>& t_data,
 
             auto res = predict(iter_input);
 
-            //std::vector<float> target(m_output_layer().get_output_shape().h);
-            //target[t_labels[i]] = 1;
+            std::vector<float> target(m_output_layer().get_output_shape().h);
+            target[t_labels[i]] = 1;
 
             //m_output_layer().back_propagation(target);
 
@@ -397,4 +399,31 @@ void Network::fit(const std::vector<float>& t_data,
         std::cout << std::endl;
     }
 }
+
+void Network::shuffle_data(std::vector<float>& t_data, std::vector<int>& t_label){
+    std::vector<int> index(t_label.size());
+    for(int i = 0; i < index.size(); ++i){
+        index[i] = i;
+    }
+
+    std::random_shuffle(index.begin(), index.end());
+
+    std::vector<float> data_sh(t_data.size());
+    std::vector<int> label_sh(t_label.size());
+
+    LayerShape is = m_input_layer().get_input_shape();
+    int input_size = is.h * is.w * is.c;
+
+    for(int i = 0; i < index.size(); ++i){
+        label_sh[i] = t_label[index[i]];
+
+        for(int j = 0; j < input_size; ++j){
+            data_sh[i * input_size + j] = t_data[index[i] * input_size + j];
+        }
+    }
+
+    t_data = data_sh;
+    t_label = label_sh;
+}
+
 }
