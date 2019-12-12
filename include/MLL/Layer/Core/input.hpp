@@ -1,8 +1,10 @@
 #ifndef _MLL_LAYER_CORE_INPUT_HPP
 #define _MLL_LAYER_CORE_INPUT_HPP
 
+#include<MLL/Layer/layer.hpp>
+
 namespace MLL{
-    class Input : public CoreLayer{
+    class Input : public Layer{
     private:
 
     public:

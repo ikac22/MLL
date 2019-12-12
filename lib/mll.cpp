@@ -218,13 +218,8 @@ m_output_shape(t_output_shape){
     for(auto& ch : m_sum) ch.resize(t_output_shape.h, 1);
 }
 
-CoreLayer::CoreLayer(int t_size) :
-Layer(LayerShape(t_size, 1, 1)){
-
-}
-
 Dense::Dense(int t_size, Activation t_act):
-CoreLayer(t_size),
+Layer({t_size, 1, 1}),
 m_fun(t_act){
 }
 
@@ -264,7 +259,7 @@ void Dense::back_propagation(const Layer& t_next_layer,
 }
 
 Flatten::Flatten() :
-CoreLayer(0){}
+Layer({0, 1, 1}){}
 
 void Flatten::compile(){
     int output_size = m_input_shape.h * m_input_shape.w * m_input_shape.c;
@@ -289,7 +284,7 @@ void Flatten::back_propagation(const Layer& t_next_layer,
                                const Layer& t_prev_layer){}
 
 Input::Input(int t_size) :
-CoreLayer(t_size){}
+Layer({t_size, 1, 1}){}
 
 void Input::compile(){
     set_input_shape(m_output_shape);
@@ -301,12 +296,9 @@ void Input::forward_propagation(const Layer& t_prev_layer){
     exit(0);
 }
 
-ConvLayer::ConvLayer(LayerShape t_shape) :
-Layer(t_shape){}
-
 Conv2D::Conv2D(int t_kernel_count, LayerShape t_kernel_size, Padding t_pad,
                int t_stride, Activation t_act, LayerShape t_input_shape) :
-ConvLayer({0, 0, 0}),
+Layer({0, 0, 0}),
 m_kernel_count(t_kernel_count),
 m_kernel_size(t_kernel_size),
 m_stride(t_stride),

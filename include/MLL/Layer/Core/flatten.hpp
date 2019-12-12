@@ -1,8 +1,10 @@
 #ifndef _MLL_LAYER_CORE_FLATTEN_HPP
 #define _MLL_LAYER_CORE_FLATTEN_HPP
 
+#include<MLL/Layer/layer.hpp>
+
 namespace MLL{
-    class Flatten : public CoreLayer{
+    class Flatten : public Layer{
     private:
 
     public:

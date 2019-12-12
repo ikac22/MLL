@@ -3,11 +3,16 @@
 
 #include<initializer_list>
 
-#include<MLL/Layer/conv_layer.hpp>
+#include<MLL/Layer/layer.hpp>
 #include<MLL/Layer/layer_shape.hpp>
 
 namespace MLL{
-    class Conv2D : public ConvLayer{
+    enum class Padding{
+        valid,
+        same
+    };
+    
+    class Conv2D : public Layer{
     private:
         int m_kernel_count;
         LayerShape m_kernel_size;

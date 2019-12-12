@@ -1,13 +1,13 @@
 #ifndef _MLL_LAYER_CORE_DENSE_HPP
 #define _MLL_LAYER_CORE_DENSE_HPP
 
-#include<MLL/Layer/core_layer.hpp>
+#include<MLL/Layer/layer.hpp>
 
 #include<MLL/Math/activation.hpp>
 #include<MLL/Math/gradient.hpp>
 
 namespace MLL{
-    class Dense : public CoreLayer{
+    class Dense : public Layer{
     private:
         Matrix m_weight;
         Matrix m_bias;
