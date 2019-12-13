@@ -11,7 +11,7 @@ namespace MLL{
         valid,
         same
     };
-    
+
     class Conv2D : public Layer{
     private:
         int m_kernel_count;
@@ -27,6 +27,8 @@ namespace MLL{
                Activation = Activation::Linear, LayerShape = {0, 0});
 
         void compile();
+
+        float prev_agrad(int, int) const;
 
         void forward_propagation(const Layer&);
         void back_propagation(const std::vector<float>&, const Layer&);

@@ -3,7 +3,7 @@
 #include<thread>
 
 namespace MLL{
-
+///MATRIX
 Matrix::Matrix(){ resize(0, 0); }
 
 Matrix::Matrix(int t_height, int t_width){
@@ -117,11 +117,15 @@ float get_kernel_sum(const std::vector<Matrix>& t_prev_activation,
     return res;
 }
 
+///GRADIENT
+
 void Gradient<Dense>::set_size(int h, int w){
     m_weight.resize(h, w);
     m_activation.resize(h, 1);
     m_bias.resize(h, 1);
 }
+
+///ACT_FUN
 
 ActivationFunction::ActivationFunction(Activation t_act){
     switch((int)t_act){
@@ -209,6 +213,8 @@ int get_max_position(const std::vector<float>& t_vect){
     return p;
 }
 
+///LAYER
+
 Layer::Layer(LayerShape t_output_shape) :
 m_output_shape(t_output_shape){
     m_activation.resize(t_output_shape.c);
@@ -223,11 +229,17 @@ Layer({t_size, 1, 1}),
 m_fun(t_act){
 }
 
+///DENSE
+
 void Dense::compile(){
     m_bias.resize(m_output_shape.h, 1);
     m_weight.resize(m_output_shape.h, m_input_shape.h);
 
     m_gradient.set_size(m_output_shape.h, m_input_shape.h);
+}
+
+float Dense::prev_agrad(int i, int j) const{
+    return m_weight[j][i] * m_fun[m_sum[0][j][0]] * m_gradient.a()[j][0];
 }
 
 void Dense::forward_propagation(const Layer& t_prev_layer){
@@ -238,15 +250,15 @@ void Dense::forward_propagation(const Layer& t_prev_layer){
 void Dense::back_propagation(const std::vector<float>& t_target,
                              const Layer& t_prev_layer){
     // TODO: Calculate the gradient of output layer with given target values
-    auto& agrad = m_gradient.a();
-    auto& wgrad = m_gradient.w();
-    auto& bgrad = m_gradient.b();
+    auto& agrad = m_gradient.get_a();
+    auto& wgrad = m_gradient.get_w();
+    auto& bgrad = m_gradient.get_b();
     auto& prev_act = t_prev_layer.get_activation();
 
     for(int i = 0; i < t_target.size() ;i++){
         agrad[i][0] = 2 * (t_target[i] - m_activation[0][i][0]);
 
-        for(int j = 0; j < t_prev_layer.get_input_shape().h ;j++)
+        for(int j = 0; j < m_input_shape.h ;j++)
             wgrad[i][j] = prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
 
         bgrad[i][0] = m_fun[m_sum[0][i][0]] * agrad[i][0];
@@ -255,8 +267,26 @@ void Dense::back_propagation(const std::vector<float>& t_target,
 
 void Dense::back_propagation(const Layer& t_next_layer,
                              const Layer& t_prev_layer){
+    auto& agrad = m_gradient.get_a();
+    auto& wgrad = m_gradient.get_w();
+    auto& bgrad = m_gradient.get_b();
+    auto& prev_act = t_prev_layer.get_activation();
+
+    for(int i = 0; i < m_output_shape.h ;i++){
+        agrad[i][0] = 0;
+
+        for(int j = 0; j < t_next_layer.get_output_shape().h ;j++)
+            agrad[i][0] = t_next_layer.prev_agrad(i, j);
+
+        for(int j = 0; j < m_input_shape.h ;j++)
+            wgrad[i][j] = prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
+
+        bgrad[i][0] = m_fun[m_sum[0][i][0]] * agrad[i][0];
+    }
 
 }
+
+///FLATTEN
 
 Flatten::Flatten() :
 Layer({0, 1, 1}){}
@@ -265,6 +295,9 @@ void Flatten::compile(){
     int output_size = m_input_shape.h * m_input_shape.w * m_input_shape.c;
     set_output_shape({output_size, 1, 1});
     m_activation[0].resize(output_size, 1);
+}
+
+float Flatten::prev_agrad(int i, int j) const{
 }
 
 void Flatten::forward_propagation(const Layer& t_prev_layer){
@@ -283,6 +316,9 @@ void Flatten::back_propagation(const std::vector<float>& t_target,
 void Flatten::back_propagation(const Layer& t_next_layer,
                                const Layer& t_prev_layer){}
 
+
+///INPUT
+
 Input::Input(int t_size) :
 Layer({t_size, 1, 1}){}
 
@@ -290,11 +326,16 @@ void Input::compile(){
     set_input_shape(m_output_shape);
 }
 
+float Input::prev_agrad(int i, int j) const{
+}
+
 void Input::forward_propagation(const Layer& t_prev_layer){
     std::cout << "Error: \n";
     std::cout << "Input::forward_propagation called\n";
     exit(0);
 }
+
+///CONV2D
 
 Conv2D::Conv2D(int t_kernel_count, LayerShape t_kernel_size, Padding t_pad,
                int t_stride, Activation t_act, LayerShape t_input_shape) :
@@ -334,6 +375,9 @@ void Conv2D::compile(){
     }
 }
 
+float Conv2D::prev_agrad(int i, int j) const{
+}
+
 void Conv2D::forward_propagation(const Layer& t_prev_layer){
     int p = m_pad_size;
     for(int c = 0; c < m_kernel_count; ++c){
@@ -356,6 +400,8 @@ void Conv2D::back_propagation(const std::vector<float>& t_target,
                               const Layer& t_prev_layer){}
 void Conv2D::back_propagation(const Layer& t_next_layer,
                               const Layer& t_prev_layer){}
+
+///NETWORK
 
 Network::Network() :
 m_layer_count(0){}

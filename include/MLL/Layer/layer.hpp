@@ -32,6 +32,8 @@ namespace MLL{
         void set_activation(const std::vector<float>&);
         virtual const std::vector<Matrix>& get_activation() const { return m_activation; }
 
+        virtual float prev_agrad(int, int) const = 0;
+
         virtual void forward_propagation(const Layer&) = 0;
         virtual void back_propagation(const std::vector<float>&, const Layer&) = 0;
         virtual void back_propagation(const Layer&, const Layer&) = 0;
