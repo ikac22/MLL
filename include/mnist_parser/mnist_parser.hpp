@@ -61,7 +61,6 @@ std::vector<float> get_data(const char* t_filename){
 }
 
 std::vector<int> get_labels(const char* t_filename){
-    std::ofstream fout("res/mnist/mile.dat", std::ios::out | std::ios::binary);
     std::ifstream fin(t_filename, std::ios::in | std::ios::binary);
 
     if(!fin.is_open()){

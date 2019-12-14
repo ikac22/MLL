@@ -19,7 +19,9 @@
 #endif
 
 namespace MLL{
+
 ///MATRIX
+
 Matrix::Matrix(){ resize(0, 0); }
 
 Matrix::Matrix(int t_height, int t_width){
@@ -55,6 +57,12 @@ void Matrix::resize(int t_height, int t_width){
 
     m_matrix.resize(m_height);
     for(auto& row : m_matrix) row.resize(m_width);
+
+    for(int i = 0; i < m_height; ++i){
+        for(int j = 0; j < m_width; ++j){
+            m_matrix[i][j] = 0;
+        }
+    }
 }
 
 const Matrix& operator+(const Matrix& t_matrix1, const Matrix& t_matrix2){
@@ -258,12 +266,12 @@ void Layer::set_activation(const std::vector<float>& t_activation){
     }
 }
 
+///DENSE
+
 Dense::Dense(int t_size, Activation t_act):
 Layer({t_size, 1, 1}),
 m_fun(t_act){
 }
-
-///DENSE
 
 void Dense::compile(){
     m_bias.resize(m_output_shape.h, 1);
@@ -294,26 +302,19 @@ void Dense::forward_propagation(const Layer& t_prev_layer){
 
 void Dense::back_propagation(const std::vector<float>& t_target,
                              const Layer& t_prev_layer){
-    // TODO: Calculate the gradient of output layer with given target values
-
-    //std::cout<<"    -Making refferences..."<<std::endl;
     auto& agrad = m_gradient.get_a();
     auto& wgrad = m_gradient.get_w();
     auto& bgrad = m_gradient.get_b();
     auto& prev_act = t_prev_layer.get_activation();
 
-    //std::cout<<"    -Starting for..."<<std::endl;
-    for(int i = 0; i < t_target.size() ;i++){
-
-        //std::cout<<"        -Cycle "<<i<<"..."<<std::endl<<"        -AGRAD..."<<std::endl;
+    for(int i = 0; i < t_target.size(); ++i){
         agrad[i][0] = 2 * (m_activation[0][i][0] - t_target[i]);
-        //std::cout<<"        -WGRAD..."<<std::endl;
-        for(int j = 0; j < m_input_shape.h ;j++){
-            //std::cout<<"            -Cycle "<<j<<"..."<<std::endl;
-            wgrad[i][j] = prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
+
+        for(int j = 0; j < m_input_shape.h; ++j){
+            wgrad[i][j] += prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
         }
-        //std::cout<<"        -BGRAD..."<<std::endl;
-        bgrad[i][0] = m_fun[m_sum[0][i][0]] * agrad[i][0];
+
+        bgrad[i][0] += m_fun[m_sum[0][i][0]] * agrad[i][0];
     }
 }
 
@@ -324,36 +325,32 @@ void Dense::back_propagation(const Layer& t_next_layer,
     auto& bgrad = m_gradient.get_b();
     auto& prev_act = t_prev_layer.get_activation();
 
-    for(int i = 0; i < m_output_shape.h ;i++){
+    for(int i = 0; i < m_output_shape.h; ++i){
         agrad[i][0] = 0;
 
-        for(int j = 0; j < t_next_layer.get_output_shape().h ;j++)
-            agrad[i][0] = t_next_layer.prev_agrad(i, j);
+        for(int j = 0; j < t_next_layer.get_output_shape().h; ++j)
+            agrad[i][0] += t_next_layer.prev_agrad(i, j);
 
-        for(int j = 0; j < m_input_shape.h ;j++)
-            wgrad[i][j] = prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
+        for(int j = 0; j < m_input_shape.h; ++j){
+            wgrad[i][j] += prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
+        }
 
-        bgrad[i][0] = m_fun[m_sum[0][i][0]] * agrad[i][0];
+        bgrad[i][0] += m_fun[m_sum[0][i][0]] * agrad[i][0];
     }
 
 }
 
-void Dense::output() const{
-    std::cout<<std::endl;
-    std::cout<<std::left<<std::setw(13)<<"Activations: ";
-    for(int i = 0; i < m_output_shape.h ;i++)
-        std::cout<<std::left<<std::setw(6)<<std::setprecision(3)<<m_activation[0][i][0];
-}
-
-void Dense::apply_gradient(){
+void Dense::apply_gradient(int t_subset_size){
     for(int i = 0; i < m_weight.get_height(); ++i){
         for(int j = 0; j < m_weight.get_width(); ++j){
-            m_weight[i][j] -= m_gradient.w()[i][j];
+            m_weight[i][j] -= m_gradient.w()[i][j] / (float)t_subset_size;
+            m_gradient.get_w()[i][j] = 0;
         }
     }
 
     for(int i = 0; i < m_bias.get_height(); ++i){
-        m_bias[i][0] -= m_gradient.b()[i][0];
+        m_bias[i][0] -= m_gradient.b()[i][0] / (float)t_subset_size;
+        m_gradient.get_b()[i][0] = 0;
     }
 }
 
@@ -368,7 +365,8 @@ void Flatten::compile(){
     m_activation[0].resize(output_size, 1);
 }
 
-float Flatten::prev_agrad(int i, int j) const{
+float Flatten::prev_agrad(int i, int j) const {
+
 }
 
 void Flatten::forward_propagation(const Layer& t_prev_layer){
@@ -397,21 +395,12 @@ void Input::compile(){
     set_input_shape(m_output_shape);
 }
 
-float Input::prev_agrad(int i, int j) const{
-}
-
 void Input::forward_propagation(const Layer& t_prev_layer){
     std::cout << "Error: \n";
     std::cout << "Input::forward_propagation called\n";
     exit(0);
 }
 
-void Input::output() const{
-    std::cout<<std::endl;
-    std::cout<<std::left<<std::setw(13)<<"Activations: ";
-    for(int i = 0; i < m_output_shape.h ;i++)
-        std::cout<<std::left<<std::setw(6)<<std::setprecision(3)<<m_activation[0][i][0];
-}
 ///CONV2D
 
 Conv2D::Conv2D(int t_kernel_count, LayerShape t_kernel_size, Padding t_pad,
@@ -452,7 +441,8 @@ void Conv2D::compile(){
     }
 }
 
-float Conv2D::prev_agrad(int i, int j) const{
+float Conv2D::prev_agrad(int i, int j) const {
+
 }
 
 void Conv2D::forward_propagation(const Layer& t_prev_layer){
@@ -520,56 +510,43 @@ void Network::fit(std::vector<float>& t_data,
     LayerShape output_shape = m_output_layer().get_output_shape();
     int output_size = output_shape.h * output_shape.w * output_shape.c;
 
-    //std::cout<<"Start training..."<<std::endl;
     for(int e = 0; e < t_epoch_count; ++e){
         int correct = 0;
         float cost_sum = 0;
 
-        //std::cout<<"Suffleing data..."<<std::endl;
         shuffle_data(t_data, t_labels);
 
-        //std::cout<<"Backprop state..."<<std::endl;
         for(int i = 0; i < iter_count; ++i){
-            //std::cout<<"Making iter_input..."<<std::endl;
             std::vector<float> iter_input(t_data.begin() + i * input_size,
                                           t_data.begin() + (i+1) * input_size);
 
             auto res = predict(iter_input);
 
-            std::cout<<"Result guess "<<i<<": "<<get_max_position(res)<<std::endl;
-
-            //std::cout<<"Making target array..."<<std::endl;
             std::vector<float> target(output_size);
             target[t_labels[i]] = 1;
 
-            //std::cout<<"Getting cost..."<<std::endl;
             cost_sum += get_cost(target, res);
             if(get_max_position(res) == t_labels[i]) ++correct;
 
-            //std::cout<<"Backprop output..."<<std::endl;
             m_output_layer().back_propagation(target,
                                               m_layer[m_layer_count - 2].get());
-            //std::cout<<"Backprop middle..."<<std::endl;
+
             for(int j = m_layer_count - 2; j > 0; --j){
                 m_layer[j].get().back_propagation(m_layer[j+1].get(),
                                                   m_layer[j-1].get());
             }
 
-            //std::cout<<"Loading bar..."<<std::endl;
             loading_bar((i+1) / (float)iter_count, e + 1, t_epoch_count,
                         correct, i, cost_sum);
 
-            //for(auto& l : m_layer) l.get().output();
-
-            m_output_layer().output();
-
-            //std::cout<<"Applying grads..."<<std::endl;
-
             if(!(i % t_subset_size))
-                for(auto& l : m_layer) l.get().apply_gradient();
+                for(auto& l : m_layer) l.get().apply_gradient(t_subset_size);
         }
 
-        for(auto& l : m_layer) l.get().apply_gradient();
+        if(iter_count % i)
+            for(auto& l : m_layer) l.get().apply_gradient(iter_count % i);
+
+        
         std::cout << std::endl;
     }
 }
