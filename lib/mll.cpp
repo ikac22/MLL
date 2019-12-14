@@ -224,6 +224,17 @@ m_output_shape(t_output_shape){
     for(auto& ch : m_sum) ch.resize(t_output_shape.h, 1);
 }
 
+void Layer::set_activation(const std::vector<float>& t_activation){
+    int k = 0;
+    for(int c = 0; c < m_activation.size(); ++c){
+        for(int i = 0; i < m_activation[c].get_height(); ++i){
+            for(int j = 0; j < m_activation[c].get_width(); ++j){
+                m_activation[c][i][j] = t_activation[k++];
+            }
+        }
+    }
+}
+
 Dense::Dense(int t_size, Activation t_act):
 Layer({t_size, 1, 1}),
 m_fun(t_act){
@@ -286,6 +297,18 @@ void Dense::back_propagation(const Layer& t_next_layer,
 
 }
 
+void Dense::apply_gradient(){
+    for(int i = 0; i < m_weight.get_height(); ++i){
+        for(int j = 0; j < m_weight.get_width(); ++j){
+            m_weight[i][j] -= m_gradient.w()[i][j];
+        }
+    }
+
+    for(int i = 0; i < m_bias.get_height(); ++i){
+        m_bias[i][0] -= m_gradient.b()[i][0];
+    }
+}
+
 ///FLATTEN
 
 Flatten::Flatten() :
@@ -339,7 +362,7 @@ void Input::forward_propagation(const Layer& t_prev_layer){
 
 Conv2D::Conv2D(int t_kernel_count, LayerShape t_kernel_size, Padding t_pad,
                int t_stride, Activation t_act, LayerShape t_input_shape) :
-Layer({0, 0, 0}),
+Layer({0, 1, 1}),
 m_kernel_count(t_kernel_count),
 m_kernel_size(t_kernel_size),
 m_stride(t_stride),
@@ -418,7 +441,7 @@ void Network::compile(){
 }
 
 const std::vector<float>& Network::predict(const std::vector<float>& t_input){
-    //m_input_layer().set_activation(t_input);  TODO: Implement set_activation
+    m_input_layer().set_activation(t_input);
 
     for(int i = 1; i < m_layer_count; ++i){
         m_layer[i].get().forward_propagation(m_layer[i-1]);
@@ -461,14 +484,18 @@ void Network::fit(std::vector<float>& t_data,
             cost_sum += get_cost(target, res);
             if(get_max_position(res) == t_labels[i]) ++correct;
 
-            //m_output_layer().back_propagation(target);
+            m_output_layer().back_propagation(target,
+                                              m_layer[m_layer_count - 1].get());
 
             for(int j = m_layer_count - 2; j > 0; --j){
-                //m_layer[j].get().back_propagation(m_layer[j+1]);
+                m_layer[j].get().back_propagation(m_layer[j+1].get(),
+                                                  m_layer[j-1].get());
             }
 
             loading_bar((i+1) / (float)iter_count, e + 1, t_epoch_count,
                         correct, i, cost_sum);
+
+            for(auto& l : m_layer) l.get().apply_gradient();
         }
         std::cout << std::endl;
     }

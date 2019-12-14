@@ -39,6 +39,8 @@ namespace MLL{
         virtual void back_propagation(const Layer&, const Layer&) = 0;
 
         virtual Layer* copy() const = 0;
+
+        virtual void apply_gradient() = 0;
     };
 }
 

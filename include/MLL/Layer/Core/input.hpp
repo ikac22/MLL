@@ -19,6 +19,8 @@ namespace MLL{
         void back_propagation(const Layer&, const Layer&){}
 
         Layer* copy() const { return new Input(*this); }
+
+        void apply_gradient(){}
     };
 }
 

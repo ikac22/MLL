@@ -18,8 +18,9 @@ namespace MLL{
         void back_propagation(const std::vector<float>&, const Layer&);
         void back_propagation(const Layer&, const Layer&);
 
-
         Layer* copy() const { return new Flatten(*this); }
+
+        void apply_gradient(){}
     };
 }
 

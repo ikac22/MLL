@@ -14,9 +14,9 @@ int main(){
 
     Network net;
 
-    net.add(Conv2D(6, {3, 3}, Padding::same, 1, Activation::ReLU, {28, 28}));
-    net.add(Flatten());
-    //net.add(Input(784));
+    //net.add(Conv2D(6, {3, 3}, Padding::same, 1, Activation::ReLU, {28, 28}));
+    //net.add(Flatten());
+    net.add(Input(784));
     net.add(Dense(16, Activation::ReLU));
     net.add(Dense(16, Activation::ReLU));
     net.add(Dense(10, Activation::Sigmoid));
@@ -24,7 +24,7 @@ int main(){
     net.compile();
     //net.compile(Optimizer::SGD);
 
-    //net.fit(tr_data, tr_labels, 5);
+    net.fit(tr_data, tr_labels, 5);
 
     //net.save_to_file("network.nd");
 
