@@ -31,7 +31,7 @@ namespace MLL{
 
         const std::vector<float>& predict(const std::vector<float>&);
 
-        void fit(std::vector<float>&, std::vector<int>&, int);
+        void fit(std::vector<float>&, std::vector<int>&, int, int);
 
         //void evaluate();
 

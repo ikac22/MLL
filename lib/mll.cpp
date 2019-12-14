@@ -8,9 +8,15 @@
 #include<thread>
 #include<chrono>
 #include<random>
-#include <windows.h>
-#include <sstream>
-#include <iomanip>
+#include<sstream>
+#include<iomanip>
+
+#ifdef __unix__
+    #define OS_WIN false
+#elif defined(_WIN32) || defined(WIN64)
+    #define OS_WIN true
+    #include<windows.h>
+#endif
 
 namespace MLL{
 ///MATRIX
@@ -79,7 +85,13 @@ const Matrix& operator*(const Matrix& t_matrix1, const Matrix& t_matrix2){
     static Matrix result;
     result.resize(t_matrix1.get_height(), t_matrix2.get_width());
 
-    gemm(t_matrix1, t_matrix2, result);
+    for(int i = 0; i < result.get_height(); ++i){
+        for(int j = 0; j < result.get_width(); ++j){
+            for(int k = 0; k < t_matrix1.get_width(); ++k){
+                result[i][j] += t_matrix1[i][k] * t_matrix2[k][j];
+            }
+        }
+    }
 
     return result;
 }
@@ -202,7 +214,7 @@ namespace Activations{
 
 void loading_bar(float percent, int cur_epoch, int total_epoch,
                  int correct, int g, float cost_sum){
-    system("CLS");
+    if(OS_WIN) system("CLS");
     int val = (int) (percent * 100);
     int lpad = (int) (percent * PBWIDTH);
     int rpad = PBWIDTH - lpad;
@@ -263,7 +275,7 @@ void Dense::compile(){
     std::default_random_engine generator(seed);
     std::normal_distribution<double> distribution(0.0, 1.0);
 
-    double coef = sqrt(1 / (double)(m_activation[0].get_height()));
+    double coef = sqrt(1 / (double)(m_input_shape.h));
     for(int i = 0; i < m_weight.get_height(); ++i){
         for(int j = 0; j < m_weight.get_width(); ++j){
             m_weight[i][j] = distribution(generator) * coef;
@@ -494,7 +506,8 @@ const std::vector<float>& Network::predict(const std::vector<float>& t_input){
 
 void Network::fit(std::vector<float>& t_data,
                   std::vector<int>& t_labels,
-                  int t_epoch_count){
+                  int t_epoch_count,
+                  int t_subset_size){
     if(!is_compiled){
         std::cout << "Can't fit uncompiled model!" << std::endl;
         exit(0);
@@ -517,7 +530,6 @@ void Network::fit(std::vector<float>& t_data,
 
         //std::cout<<"Backprop state..."<<std::endl;
         for(int i = 0; i < iter_count; ++i){
-
             //std::cout<<"Making iter_input..."<<std::endl;
             std::vector<float> iter_input(t_data.begin() + i * input_size,
                                           t_data.begin() + (i+1) * input_size);
@@ -527,7 +539,7 @@ void Network::fit(std::vector<float>& t_data,
             std::cout<<"Result guess "<<i<<": "<<get_max_position(res)<<std::endl;
 
             //std::cout<<"Making target array..."<<std::endl;
-            std::vector<float> target(m_output_layer().get_output_shape().h);
+            std::vector<float> target(output_size);
             target[t_labels[i]] = 1;
 
             //std::cout<<"Getting cost..."<<std::endl;
@@ -549,10 +561,15 @@ void Network::fit(std::vector<float>& t_data,
 
             //for(auto& l : m_layer) l.get().output();
 
+            m_output_layer().output();
+
             //std::cout<<"Applying grads..."<<std::endl;
-            for(auto& l : m_layer) l.get().apply_gradient();
-            //Sleep(5000);
+
+            if(!(i % t_subset_size))
+                for(auto& l : m_layer) l.get().apply_gradient();
         }
+
+        for(auto& l : m_layer) l.get().apply_gradient();
         std::cout << std::endl;
     }
 }

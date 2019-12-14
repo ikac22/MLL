@@ -52,7 +52,7 @@ int main(){
     //net.compile(Optimizer::SGD);
 
     //std::cout<<"Fitting data..."<<std::endl;
-    net.fit(tr_data, tr_labels, 5);
+    net.fit(tr_data, tr_labels, 5, 50);
 
     //net.save_to_file("network.nd");
 
