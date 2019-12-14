@@ -1,6 +1,13 @@
 #include<MLL/mll.hpp>
 
+#include<vector>
+#include<stdlib.h>
+#include<iostream>
+#include<math.h>
+#include<time.h>
 #include<thread>
+#include<chrono>
+#include<random>
 
 namespace MLL{
 ///MATRIX
@@ -247,6 +254,17 @@ void Dense::compile(){
     m_weight.resize(m_output_shape.h, m_input_shape.h);
 
     m_gradient.set_size(m_output_shape.h, m_input_shape.h);
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    std::normal_distribution<double> distribution(0.0, 1.0);
+
+    double coef = sqrt(1 / (double)(m_activation[0].get_height()));
+    for(int i = 0; i < m_weight.get_height(); ++i){
+        for(int j = 0; j < m_weight.get_width(); ++j){
+            m_weight[i][j] = distribution(generator) * coef;
+        }
+    }
 }
 
 float Dense::prev_agrad(int i, int j) const{
