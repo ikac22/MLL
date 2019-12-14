@@ -516,7 +516,9 @@ void Network::fit(std::vector<float>& t_data,
 
         shuffle_data(t_data, t_labels);
 
-        for(int i = 0; i < iter_count; ++i){
+        int i;
+
+        for(i = 0; i < iter_count; ++i){
             std::vector<float> iter_input(t_data.begin() + i * input_size,
                                           t_data.begin() + (i+1) * input_size);
 
@@ -546,7 +548,7 @@ void Network::fit(std::vector<float>& t_data,
         if(iter_count % i)
             for(auto& l : m_layer) l.get().apply_gradient(iter_count % i);
 
-        
+
         std::cout << std::endl;
     }
 }
