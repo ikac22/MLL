@@ -27,6 +27,8 @@ namespace MLL{
 
         Layer* copy() const { return new Dense(*this); }
 
+        void output() const;
+
         void apply_gradient();
     };
 }

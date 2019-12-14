@@ -36,6 +36,8 @@ namespace MLL{
 
         Layer* copy() const { return new Conv2D(*this); }
 
+        void output() const{}
+
         void apply_gradient(){}
     };
 }

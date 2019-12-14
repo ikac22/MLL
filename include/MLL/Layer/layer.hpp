@@ -40,6 +40,8 @@ namespace MLL{
 
         virtual Layer* copy() const = 0;
 
+        virtual void output() const = 0;
+
         virtual void apply_gradient() = 0;
     };
 }

@@ -20,6 +20,8 @@ namespace MLL{
 
         Layer* copy() const { return new Input(*this); }
 
+        void output() const;
+
         void apply_gradient(){}
     };
 }
