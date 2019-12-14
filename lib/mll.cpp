@@ -1,9 +1,27 @@
 #include<MLL/mll.hpp>
 
+#include<vector>
+#include<stdlib.h>
+#include<iostream>
+#include<math.h>
+#include<time.h>
 #include<thread>
+#include<chrono>
+#include<random>
+#include<sstream>
+#include<iomanip>
+
+#ifdef __unix__
+    #define OS_WIN false
+#elif defined(_WIN32) || defined(WIN64)
+    #define OS_WIN true
+    #include<windows.h>
+#endif
 
 namespace MLL{
+
 ///MATRIX
+
 Matrix::Matrix(){ resize(0, 0); }
 
 Matrix::Matrix(int t_height, int t_width){
@@ -39,6 +57,12 @@ void Matrix::resize(int t_height, int t_width){
 
     m_matrix.resize(m_height);
     for(auto& row : m_matrix) row.resize(m_width);
+
+    for(int i = 0; i < m_height; ++i){
+        for(int j = 0; j < m_width; ++j){
+            m_matrix[i][j] = 0;
+        }
+    }
 }
 
 const Matrix& operator+(const Matrix& t_matrix1, const Matrix& t_matrix2){
@@ -69,7 +93,13 @@ const Matrix& operator*(const Matrix& t_matrix1, const Matrix& t_matrix2){
     static Matrix result;
     result.resize(t_matrix1.get_height(), t_matrix2.get_width());
 
-    gemm(t_matrix1, t_matrix2, result);
+    for(int i = 0; i < result.get_height(); ++i){
+        for(int j = 0; j < result.get_width(); ++j){
+            for(int k = 0; k < t_matrix1.get_width(); ++k){
+                result[i][j] += t_matrix1[i][k] * t_matrix2[k][j];
+            }
+        }
+    }
 
     return result;
 }
@@ -192,6 +222,7 @@ namespace Activations{
 
 void loading_bar(float percent, int cur_epoch, int total_epoch,
                  int correct, int g, float cost_sum){
+    if(OS_WIN) system("CLS");
     int val = (int) (percent * 100);
     int lpad = (int) (percent * PBWIDTH);
     int rpad = PBWIDTH - lpad;
@@ -235,18 +266,29 @@ void Layer::set_activation(const std::vector<float>& t_activation){
     }
 }
 
+///DENSE
+
 Dense::Dense(int t_size, Activation t_act):
 Layer({t_size, 1, 1}),
 m_fun(t_act){
 }
-
-///DENSE
 
 void Dense::compile(){
     m_bias.resize(m_output_shape.h, 1);
     m_weight.resize(m_output_shape.h, m_input_shape.h);
 
     m_gradient.set_size(m_output_shape.h, m_input_shape.h);
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    std::normal_distribution<double> distribution(0.0, 1.0);
+
+    double coef = sqrt(1 / (double)(m_input_shape.h));
+    for(int i = 0; i < m_weight.get_height(); ++i){
+        for(int j = 0; j < m_weight.get_width(); ++j){
+            m_weight[i][j] = distribution(generator) * coef;
+        }
+    }
 }
 
 float Dense::prev_agrad(int i, int j) const{
@@ -260,19 +302,19 @@ void Dense::forward_propagation(const Layer& t_prev_layer){
 
 void Dense::back_propagation(const std::vector<float>& t_target,
                              const Layer& t_prev_layer){
-    // TODO: Calculate the gradient of output layer with given target values
     auto& agrad = m_gradient.get_a();
     auto& wgrad = m_gradient.get_w();
     auto& bgrad = m_gradient.get_b();
     auto& prev_act = t_prev_layer.get_activation();
 
-    for(int i = 0; i < t_target.size() ;i++){
-        agrad[i][0] = 2 * (t_target[i] - m_activation[0][i][0]);
+    for(int i = 0; i < t_target.size(); ++i){
+        agrad[i][0] = 2 * (m_activation[0][i][0] - t_target[i]);
 
-        for(int j = 0; j < m_input_shape.h ;j++)
-            wgrad[i][j] = prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
+        for(int j = 0; j < m_input_shape.h; ++j){
+            wgrad[i][j] += prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
+        }
 
-        bgrad[i][0] = m_fun[m_sum[0][i][0]] * agrad[i][0];
+        bgrad[i][0] += m_fun[m_sum[0][i][0]] * agrad[i][0];
     }
 }
 
@@ -283,29 +325,32 @@ void Dense::back_propagation(const Layer& t_next_layer,
     auto& bgrad = m_gradient.get_b();
     auto& prev_act = t_prev_layer.get_activation();
 
-    for(int i = 0; i < m_output_shape.h ;i++){
+    for(int i = 0; i < m_output_shape.h; ++i){
         agrad[i][0] = 0;
 
-        for(int j = 0; j < t_next_layer.get_output_shape().h ;j++)
-            agrad[i][0] = t_next_layer.prev_agrad(i, j);
+        for(int j = 0; j < t_next_layer.get_output_shape().h; ++j)
+            agrad[i][0] += t_next_layer.prev_agrad(i, j);
 
-        for(int j = 0; j < m_input_shape.h ;j++)
-            wgrad[i][j] = prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
+        for(int j = 0; j < m_input_shape.h; ++j){
+            wgrad[i][j] += prev_act[0][j][0] * m_fun[m_sum[0][i][0]] * agrad[i][0];
+        }
 
-        bgrad[i][0] = m_fun[m_sum[0][i][0]] * agrad[i][0];
+        bgrad[i][0] += m_fun[m_sum[0][i][0]] * agrad[i][0];
     }
 
 }
 
-void Dense::apply_gradient(){
+void Dense::apply_gradient(int t_subset_size){
     for(int i = 0; i < m_weight.get_height(); ++i){
         for(int j = 0; j < m_weight.get_width(); ++j){
-            m_weight[i][j] -= m_gradient.w()[i][j];
+            m_weight[i][j] -= m_gradient.w()[i][j] / (float)t_subset_size;
+            m_gradient.get_w()[i][j] = 0;
         }
     }
 
     for(int i = 0; i < m_bias.get_height(); ++i){
-        m_bias[i][0] -= m_gradient.b()[i][0];
+        m_bias[i][0] -= m_gradient.b()[i][0] / (float)t_subset_size;
+        m_gradient.get_b()[i][0] = 0;
     }
 }
 
@@ -320,7 +365,8 @@ void Flatten::compile(){
     m_activation[0].resize(output_size, 1);
 }
 
-float Flatten::prev_agrad(int i, int j) const{
+float Flatten::prev_agrad(int i, int j) const {
+
 }
 
 void Flatten::forward_propagation(const Layer& t_prev_layer){
@@ -347,9 +393,6 @@ Layer({t_size, 1, 1}){}
 
 void Input::compile(){
     set_input_shape(m_output_shape);
-}
-
-float Input::prev_agrad(int i, int j) const{
 }
 
 void Input::forward_propagation(const Layer& t_prev_layer){
@@ -398,7 +441,8 @@ void Conv2D::compile(){
     }
 }
 
-float Conv2D::prev_agrad(int i, int j) const{
+float Conv2D::prev_agrad(int i, int j) const {
+
 }
 
 void Conv2D::forward_propagation(const Layer& t_prev_layer){
@@ -452,7 +496,8 @@ const std::vector<float>& Network::predict(const std::vector<float>& t_input){
 
 void Network::fit(std::vector<float>& t_data,
                   std::vector<int>& t_labels,
-                  int t_epoch_count){
+                  int t_epoch_count,
+                  int t_subset_size){
     if(!is_compiled){
         std::cout << "Can't fit uncompiled model!" << std::endl;
         exit(0);
@@ -466,7 +511,6 @@ void Network::fit(std::vector<float>& t_data,
     int output_size = output_shape.h * output_shape.w * output_shape.c;
 
     for(int e = 0; e < t_epoch_count; ++e){
-
         int correct = 0;
         float cost_sum = 0;
 
@@ -478,14 +522,14 @@ void Network::fit(std::vector<float>& t_data,
 
             auto res = predict(iter_input);
 
-            std::vector<float> target(m_output_layer().get_output_shape().h);
+            std::vector<float> target(output_size);
             target[t_labels[i]] = 1;
 
             cost_sum += get_cost(target, res);
             if(get_max_position(res) == t_labels[i]) ++correct;
 
             m_output_layer().back_propagation(target,
-                                              m_layer[m_layer_count - 1].get());
+                                              m_layer[m_layer_count - 2].get());
 
             for(int j = m_layer_count - 2; j > 0; --j){
                 m_layer[j].get().back_propagation(m_layer[j+1].get(),
@@ -495,8 +539,14 @@ void Network::fit(std::vector<float>& t_data,
             loading_bar((i+1) / (float)iter_count, e + 1, t_epoch_count,
                         correct, i, cost_sum);
 
-            for(auto& l : m_layer) l.get().apply_gradient();
+            if(!(i % t_subset_size))
+                for(auto& l : m_layer) l.get().apply_gradient(t_subset_size);
         }
+
+        if(iter_count % i)
+            for(auto& l : m_layer) l.get().apply_gradient(iter_count % i);
+
+        
         std::cout << std::endl;
     }
 }

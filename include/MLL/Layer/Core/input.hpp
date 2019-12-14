@@ -12,15 +12,14 @@ namespace MLL{
 
         void compile();
 
-        float prev_agrad(int, int) const ;
-
         void forward_propagation(const Layer&);
         void back_propagation(const std::vector<float>&, const Layer&){}
         void back_propagation(const Layer&, const Layer&){}
 
         Layer* copy() const { return new Input(*this); }
 
-        void apply_gradient(){}
+        float prev_agrad(int, int) const {}
+        void apply_gradient(int){}
     };
 }
 

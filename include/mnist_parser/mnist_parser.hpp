@@ -23,6 +23,7 @@ std::vector<float> get_data(const char* t_filename){
 
     if(!fin.is_open()){
         std::cout << "Couldn't open file \"" << t_filename << "\"!\n";
+        exit(0);
         return std::vector<float>();
     }
 
@@ -77,6 +78,7 @@ std::vector<int> get_labels(const char* t_filename){
 
     if(LABEL_MAGICNO != magic_no){
         std::cout << "Invalid magic number\n";
+        exit(0);
         return std::vector<int>();
     }
 
