@@ -10,7 +10,7 @@ namespace MLL{
     public:
         Input(int);
 
-        void compile();
+        void compile(Optimizer);
 
         void forward_propagation(const Layer&);
         void back_propagation(const std::vector<float>&, const Layer&){}

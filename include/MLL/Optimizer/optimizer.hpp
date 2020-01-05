@@ -4,23 +4,26 @@
 namespace MLL{
     enum class Optimizer{
         SGD,
-        Adagrad
+        Adagrad,
+        AdaDelta,
+        Adam
     };
-    class OptimizerFunction{
-        private:
-            float m_learning_rate, m_epsilon, m_decay, ag_param;
-            std::function<float(float, float)> m_fun;
 
-            float SGD(float, float);
-            float AdaGrad(float, float);
-        protected:
+    class LayerOptimizer{
+    private:
 
-        public:
-            OptimizerFunction(Optimizer, float, float, float);
+    protected:
 
-            float operator() (float, float);
+    public:
 
-            const Matrix operator() (const Matrix&, const Matrix&) const;
+    };
+
+    class SGD : public LayerOptimizer{
+
+    };
+
+    class Adagrad : public LayerOptimizer{
+
     };
 }
 

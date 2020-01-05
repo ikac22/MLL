@@ -273,7 +273,7 @@ Layer({t_size, 1, 1}),
 m_fun(t_act){
 }
 
-void Dense::compile(){
+void Dense::compile(Optimizer t_optimizer){
     m_bias.resize(m_output_shape.h, 1);
     m_weight.resize(m_output_shape.h, m_input_shape.h);
 
@@ -359,7 +359,7 @@ void Dense::apply_gradient(int t_subset_size){
 Flatten::Flatten() :
 Layer({0, 1, 1}){}
 
-void Flatten::compile(){
+void Flatten::compile(Optimizer t_optimizer){
     int output_size = m_input_shape.h * m_input_shape.w * m_input_shape.c;
     set_output_shape({output_size, 1, 1});
     m_activation[0].resize(output_size, 1);
@@ -391,7 +391,7 @@ void Flatten::back_propagation(const Layer& t_next_layer,
 Input::Input(int t_size) :
 Layer({t_size, 1, 1}){}
 
-void Input::compile(){
+void Input::compile(Optimizer t_optimizer){
     set_input_shape(m_output_shape);
 }
 
@@ -418,7 +418,7 @@ m_fun(t_act){
     set_input_shape(t_input_shape);
 }
 
-void Conv2D::compile(){
+void Conv2D::compile(Optimizer t_optimizer){
     LayerShape is = get_input_shape();
     set_output_shape(LayerShape(
         (is.h - m_kernel_size.h + 2 * m_pad_size) / m_stride + 1,
@@ -473,12 +473,13 @@ void Conv2D::back_propagation(const Layer& t_next_layer,
 Network::Network() :
 m_layer_count(0){}
 
-void Network::compile(){
-    m_layer[0].get().compile();
+void Network::compile(Optimizer t_optimizer){
+    if(m_layer_count < 2) exit(0x910); 
+    m_layer[0].get().compile(t_optimizer);
 
     for(int i = 1; i < m_layer_count; ++i){
         m_layer[i].get().set_input_shape(m_layer[i-1].get().get_output_shape());
-        m_layer[i].get().compile();
+        m_layer[i].get().compile(t_optimizer);
     }
 
     is_compiled = true;
@@ -539,14 +540,17 @@ void Network::fit(std::vector<float>& t_data,
             loading_bar((i+1) / (float)iter_count, e + 1, t_epoch_count,
                         correct, i, cost_sum);
 
-            if(!(i % t_subset_size))
+            if(!(i % t_subset_size)){
                 for(auto& l : m_layer) l.get().apply_gradient(t_subset_size);
+            }
         }
 
-        if(iter_count % i)
-            for(auto& l : m_layer) l.get().apply_gradient(iter_count % i);
+        if(iter_count % t_subset_size){
+            for(auto& l : m_layer){
+                l.get().apply_gradient(iter_count % t_subset_size);
+            }
+        }
 
-        
         std::cout << std::endl;
     }
 }

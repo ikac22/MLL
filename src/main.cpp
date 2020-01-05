@@ -33,13 +33,16 @@ int main(){
     //net.add(Conv2D(6, {3, 3}, Padding::same, 1, Activation::ReLU, {28, 28}));
     //net.add(Flatten());
     net.add(Input(784));
-    net.add(Dense(300, Activation::Sigmoid));
-    net.add(Dense(100, Activation::Sigmoid));
+    net.add(Dense(16, Activation::Sigmoid));
+    net.add(Dense(16, Activation::Sigmoid));
     net.add(Dense(10, Activation::Sigmoid));
     net.compile();
-    //net.compile(Optimizer::SGD);
+    net.compile(Optimizer::SGD);
 
-    net.fit(tr_data, tr_labels, 12, 50);
+    net.fit(tr_data,    // training data
+            tr_labels,  // training labels
+            12,         // epochs
+            50);        // subset size
 
     //net.save_to_file("network.nd");
 

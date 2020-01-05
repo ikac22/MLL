@@ -26,7 +26,7 @@ namespace MLL{
         Conv2D(int, LayerShape, Padding = Padding::valid, int = 1,
                Activation = Activation::Linear, LayerShape = {0, 0});
 
-        void compile();
+        void compile(Optimizer);
 
         void forward_propagation(const Layer&);
         void back_propagation(const std::vector<float>&, const Layer&);

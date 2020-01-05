@@ -4,6 +4,7 @@
 #include<vector>
 
 #include<MLL/Layer/layer_shape.hpp>
+#include<MLL/Optimizer/optimizer.hpp>
 
 namespace MLL{
     class CoreLayer;
@@ -22,7 +23,7 @@ namespace MLL{
     public:
         Layer(LayerShape);
 
-        virtual void compile() = 0;
+        virtual void compile(Optimizer) = 0;
 
         void set_input_shape(LayerShape t_shape){ m_input_shape = t_shape; }
         void set_output_shape(LayerShape t_shape){ m_output_shape = t_shape; }

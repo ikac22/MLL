@@ -5,6 +5,7 @@
 #include<algorithm>
 
 #include<MLL/Layer/layer.hpp>
+#include<MLL/Optimizer/optimizer.hpp>
 
 namespace MLL{
     class Network{
@@ -27,7 +28,7 @@ namespace MLL{
             ++m_layer_count;
         }
 
-        void compile();
+        void compile(Optimizer);
 
         const std::vector<float>& predict(const std::vector<float>&);
 
