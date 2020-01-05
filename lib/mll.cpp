@@ -517,7 +517,9 @@ void Network::fit(std::vector<float>& t_data,
 
         shuffle_data(t_data, t_labels);
 
-        for(int i = 0; i < iter_count; ++i){
+        int i;
+
+        for(i = 0; i < iter_count; ++i){
             std::vector<float> iter_input(t_data.begin() + i * input_size,
                                           t_data.begin() + (i+1) * input_size);
 
