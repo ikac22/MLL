@@ -36,7 +36,6 @@ int main(){
     net.add(Dense(16, Activation::Sigmoid));
     net.add(Dense(16, Activation::Sigmoid));
     net.add(Dense(10, Activation::Sigmoid));
-    net.compile();
     net.compile(Optimizer::SGD);
 
     net.fit(tr_data,    // training data
